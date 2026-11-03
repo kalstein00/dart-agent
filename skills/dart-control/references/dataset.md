@@ -1,0 +1,15 @@
+# Dataset import and DM/Tag queries
+
+Use the explicit, revalidated profile/app/window/session from `connection.md`. Resolve `DART` to the installed executable. Discover names with `command list` and inspect only the commands needed with `command inspect --json '{"command":"..."}'`; use `input inspect` for current-state validation. Both discovery commands are offline: do not pass `--profile` or `--app` to them. Do not load the full catalog into context. Carry the explicit profile and app on commands and windowId/sessionId in their JSON inputs. Every new logical mutation needs a fresh request ID; never blindly replay an unknown outcome.
+
+## Import and readiness
+
+Ask for the input type and an absolute path as seen by Windows DART. The agent does not transfer files, translate paths, or open the Windows SQLite itself. For SQLite inspect `import preflight` and `import sqlite`. Execute preflight for the exact `filePath` and optional destination/overwrite choices; use its fresh precondition with the same inputs for import. Do not overwrite without the user's explicit intent. Other supported formats have their own contracts; inspect them rather than substituting SQLite.
+
+An accepted import is a task receipt, not a ready Dataset. Preserve its taskId and query `task status` (or inspect `task wait`) until the same task is terminal. On `failed` or `cancelled`, report the public error and next action; on timeout/disconnection report unknown or pending and inspect the original task before any further action. Once succeeded, obtain the resulting Dataset ID, inspect it with `dataset inspect` and confirm actual readiness before opening a view. If the result does not identify a Dataset, inspect `dataset list` and establish identity from returned metadata; do not guess. A nonexistent Dataset or unavailable source is an error, not success.
+
+## Query
+
+Inspect `view source inspect` for the ready Dataset and intended `dm-view` or `tag-view`; then `view open` with the returned precondition and matching inputs. A Tag view needs the user's intended definition offsets or saved view ID; discover them using public commands rather than guessing. Inspect `dm rows` and `tag rows`, query each exact view, and use returned schema to interpret values and typed `cells`. Respect bounded pages and `nextCursor`; report incomplete results if a limit or stale cursor prevents completion. Preserve integer decimal strings and nulls; GUI display strings are not a substitute for typed cells.
+
+Report Dataset and view IDs, log `lineNo`, requested values and any limitations. DM `file` and `source_line` identify recorded source location; DM `LineNo` and Tag `lineNo` identify Dataset log rows. Input file provenance is distinct from those source locations. Do not read source code as part of this workflow. On missing path, failed task, missing Dataset, unavailable source or invalid view, report the actual public code/phase/nextAction and the correction needed. Do not claim success from preflight, task acceptance, or a partial query.
