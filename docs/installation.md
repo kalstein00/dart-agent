@@ -66,3 +66,11 @@ Windows Dataset의 로그가 가리키는 Linux 프로젝트 디렉터리를 준
 > dart-control 스킬로 선택한 Dataset의 로그 원인을 조사해 주세요. 이 Dataset의 Linux 소스 루트는 `/work/project`입니다. 기록된 소스 파일과 줄을 읽어 근거를 보여 주세요.
 
 Cline은 공개 `dataset inspect`의 Dataset별 source binding을 조회하고, 사용자가 지정한 루트를 `dataset source set`으로 등록한 뒤 재조회한다. 등록은 메타데이터 저장이며 파일을 복사하지 않는다. 같은 상대 경로라도 Dataset마다 다른 루트를 사용한다. Windows DB·가져오기 경로와 Linux 루트를 혼동하지 않는다. 등록되지 않은 루트, 잘못된 디렉터리, 없는 소스 파일은 구분해서 안내하며, 기록된 경로를 해석할 수 없으면 확인을 요청한다. 이름만 같은 파일이나 임의 빌드 경로 변환으로 대체하지 않는다. DM `file`/`source_line`은 소스 위치이고 DM `LineNo` 및 Tag `lineNo`는 로그 행이다. 조사 결과는 실제 읽은 파일과 줄, 추론의 한계를 함께 제시한다. 합성 예제와 실제 인수 결과는 [소스 조사 검증](verification/issue-6.md)을 참고한다.
+
+## SQL·분석과 Windows 내보내기
+
+준비된 Dataset, 원하는 조회 또는 분석과 Windows 절대 출력 경로를 Cline에 지정한다. 예를 들어 “이 합성 Dataset의 로그 행 수를 SQL로 구하고 CSV를 Windows 경로에 저장해 결과와 파일을 확인해 주세요”라고 요청한다. 필요한 SQL 저장과 결과 준비는 Workspace를 변경할 수 있다. 덮어쓰기는 별도 명시가 필요하다.
+
+Cline은 필요한 공개 계약을 선택해 SQL Builder, Results 또는 Charts·Pivot·Comparison을 사용한다. 작업 접수와 완료, 결과 준비, Windows 파일 출판을 따로 확인한다. 기존 결과가 남아 있어도 새 작업이 실패하거나 취소됐다면 새 결과로 보고하지 않는다. 파일은 Windows에 생성되며 Linux로 자동 전송되지 않는다. 성공 결과와 실제 Windows 파일 위치·내용 확인 여부, 실패나 미확인 항목을 구분해 보고한다.
+
+합성 데이터 기대값과 수행한 인수 범위는 [SQL·분석 인수 기록](verification/issue-7.md)을 참고한다.
