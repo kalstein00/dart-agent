@@ -15,6 +15,10 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def install(skills_dir, prepared_dir=None, update=False):
     lock = load(DEFAULT_LOCK)
+    compatibility = load(ROOT / 'skills/dart-control/compatibility.json')
+    require(compatibility['skillVersion'] == lock['skillVersion'], 'incompatible skill version')
+    require(compatibility['dartVersion'] == lock['dartVersion'] and
+            compatibility['protocolVersion'] == lock['protocolVersion'], 'incompatible skill DART version/protocol')
     target = skills_dir / 'dart-control'
     require(not target.exists() or update, 'already installed; use --update explicitly')
     skills_dir.mkdir(parents=True, exist_ok=True)

@@ -14,6 +14,8 @@ uv run --no-project python tools/install.py
 
 설치 도구는 이 저장소의 고정 Release `v0.1.0` 첨부물 7개를 내려받아 저장소의 고정 크기·SHA256·계약으로 검증한다. 설치 직전 Linux 실행 파일의 실제 version/contract identity/export도 확인한다. 검증 실패 시 기존 스킬은 보존된다. Release가 아직 발행되지 않았거나 접근할 수 없으면 설치 실패로 보고한다. 다른 버전이나 공식 upstream으로 자동 대체하지 않는다.
 
+체크아웃의 `skills/dart-control/compatibility.json`은 스킬 버전과 지원하는 DART/protocol을 고정한다. 설치 전에 이 값과 checkout의 release lock이 일치해야 한다. 소스와 호환되는 버전을 명시적으로 checkout한 뒤 설치하며, 불일치하면 자동으로 다른 버전을 찾지 않는다.
+
 설치 위치는 Cline 전역 `~/.cline/skills/dart-control`이다. 실행 파일은 그 안의 `bin/dart`, 공개 명령 참조는 `references/`에 있다. `--skills-dir`은 별도 Cline 구성의 전역 skills 디렉터리 지정에만 사용한다. 일반 업데이트는 저장소를 명시적으로 갱신한 뒤 아래 명령을 실행한다. 공식 개인 연결 프로필 `~/.dart/connections` 또는 `DART_CLI_PROFILE_DIR`은 설치 경로 밖에 유지한다. 스킬 디렉터리에 개인 파일을 저장하지 않는다.
 
 ```bash
@@ -74,3 +76,5 @@ Cline은 공개 `dataset inspect`의 Dataset별 source binding을 조회하고, 
 Cline은 필요한 공개 계약을 선택해 SQL Builder, Results 또는 Charts·Pivot·Comparison을 사용한다. 작업 접수와 완료, 결과 준비, Windows 파일 출판을 따로 확인한다. 기존 결과가 남아 있어도 새 작업이 실패하거나 취소됐다면 새 결과로 보고하지 않는다. 파일은 Windows에 생성되며 Linux로 자동 전송되지 않는다. 성공 결과와 실제 Windows 파일 위치·내용 확인 여부, 실패나 미확인 항목을 구분해 보고한다.
 
 합성 데이터 기대값과 수행한 인수 범위는 [SQL·분석 인수 기록](verification/issue-7.md)을 참고한다.
+
+최종 배포 및 재설치 인수의 현재 상태와 남은 실제 Release·회사 환경 게이트는 [통합 인수 기록](verification/issue-8.md)을 참고한다.

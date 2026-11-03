@@ -75,3 +75,76 @@ class InstallTests(unittest.TestCase):
             self.assertEqual(json.loads((installed / 'installation.json').read_text())['source'], 'development-prepared-assets')
             self.assertEqual((profiles / 'personal.json').read_text(), 'private-profile-marker')
             self.assertFalse(any('private-profile-marker' in p.read_text(errors='ignore') for p in installed.rglob('*') if p.is_file()))
+
+    def test_update_rejects_skill_version_mismatched_with_release_lock(self):
+        import json
+        import shutil
+        from test_prepare_release import PreparationTests
+        fixture = PreparationTests()
+        fixture.setUp()
+        self.addCleanup(fixture.doCleanups)
+        clone = fixture.base / 'clone'
+        (clone / 'release').mkdir(parents=True)
+        shutil.copytree(ROOT / 'tools', clone / 'tools')
+        shutil.copytree(ROOT / 'skills', clone / 'skills')
+        lock = json.loads(fixture.lock.read_text())
+        lock['skillVersion'] = '9.9.9'
+        (clone / 'release/dart-2.1.0.lock.json').write_text(json.dumps(lock))
+        target = fixture.base / 'skills/dart-control'
+        target.mkdir(parents=True)
+        (target / 'keep').write_text('existing installation')
+        result = subprocess.run(['uv', 'run', '--no-project', 'python', str(clone / 'tools/install.py'),
+                                 '--skills-dir', str(target.parent), '--prepared-dir', str(fixture.source), '--update'],
+                                capture_output=True, text=True)
+        self.assertNotEqual(result.returncode, 0, result.stdout)
+        self.assertIn('incompatible skill version', result.stderr)
+        self.assertEqual((target / 'keep').read_text(), 'existing installation')
+
+    def test_checksum_failure_during_update_preserves_skill_and_profile(self):
+        from test_prepare_release import PreparationTests
+        fixture = PreparationTests()
+        fixture.setUp()
+        self.addCleanup(fixture.doCleanups)
+        import shutil
+        clone = fixture.base / 'clone'
+        (clone / 'release').mkdir(parents=True)
+        shutil.copytree(ROOT / 'tools', clone / 'tools')
+        shutil.copytree(ROOT / 'skills', clone / 'skills')
+        shutil.copy2(fixture.lock, clone / 'release/dart-2.1.0.lock.json')
+        home = fixture.base / 'home'
+        target = home / '.cline/skills/dart-control'
+        target.mkdir(parents=True)
+        (target / 'keep').write_text('existing')
+        profile = home / '.dart/connections/personal.json'
+        profile.parent.mkdir(parents=True)
+        profile.write_text('private-profile-marker')
+        asset = fixture.source / 'dart-cli-linux-x64'
+        data = asset.read_bytes()
+        asset.write_bytes(bytes([data[0] ^ 1]) + data[1:])
+        result = subprocess.run(['uv', 'run', '--no-project', 'python', str(clone / 'tools/install.py'),
+                                 '--prepared-dir', str(fixture.source), '--update'],
+                                env={**os.environ, 'HOME': str(home)}, capture_output=True, text=True)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn('checksum mismatch', result.stderr)
+        self.assertEqual((target / 'keep').read_text(), 'existing')
+        self.assertEqual(profile.read_text(), 'private-profile-marker')
+
+    def test_download_failure_during_update_preserves_skill_and_profile(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            home = Path(temporary)
+            target = home / '.cline/skills/dart-control'
+            target.mkdir(parents=True)
+            (target / 'keep').write_text('existing')
+            profile = home / '.dart/connections/personal.json'
+            profile.parent.mkdir(parents=True)
+            profile.write_text('private-profile-marker')
+            fake = home / 'gh'
+            fake.write_text('#!/bin/sh\nexit 1\n')
+            fake.chmod(0o755)
+            result = subprocess.run(['uv', 'run', '--no-project', 'python', str(ROOT / 'tools/install.py'), '--update'],
+                                    env={**os.environ, 'HOME': str(home), 'PATH': str(home) + ':' + os.environ['PATH']},
+                                    capture_output=True, text=True)
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn('installation failed', result.stderr)
+            self.assertEqual((target / 'keep').read_text(), 'existing')
+            self.assertEqual(profile.read_text(), 'private-profile-marker')
