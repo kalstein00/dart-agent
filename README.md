@@ -9,3 +9,11 @@ uv run --no-project python tools/prepare_release.py --output /tmp/dart-agent-rel
 ```
 
 실행 파일은 Git 소스에 포함하지 않는다. 준비 도구는 공식 DART Release에서 직접 내려받으므로 최초 dart-agent Release 준비에도 사용할 수 있다.
+
+Linux Cline 전역 설치와 Windows 담당자의 Remote Access 설정, 비공개 번들 등록 및 단일 창 세션 안내는 [설치·연결 문서](docs/installation.md)를 참고한다.
+
+```bash
+uv run --no-project python tools/install.py
+```
+
+고정 dart-agent `v0.1.0` Release가 필요하다. 아직 발행 전이면 설치는 실패하며, 개발용 준비 자산 설치는 공개 Release 설치 검증과 구분한다.
