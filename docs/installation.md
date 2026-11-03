@@ -58,3 +58,11 @@ Windows DART에서 접근할 수 있는 절대 입력 경로를 준비한 뒤 Cl
 SQLite 외 입력은 해당 형식의 공개 명령을 확인한다. Cline은 입력과 대상에 대한 preflight 후 가져오기를 요청하고 원래 taskId의 최종 상태와 Dataset 준비 상태를 확인한다. 접수만 된 작업은 완료가 아니다. Tag 정의를 지정할 수 없으면 사용자가 선택할 근거를 요청한다. 잘못된 경로, 실패·취소된 작업 또는 없는 Dataset은 공식 오류와 조치로 보고한다. 보고서의 입력 파일 출처, 로그 행 번호와 로그에 기록된 소스 파일·소스 줄은 서로 다르다. 소스 코드 읽기는 별도 작업이다.
 
 공식 합성 예제와 실제 Cline 검증 절차는 [Dataset 인수 기록](verification/issue-5.md)을 참고한다. 회사 DB나 연결 비밀을 예제 또는 증거에 넣지 않는다.
+
+## Dataset 소스 조사
+
+Windows Dataset의 로그가 가리키는 Linux 프로젝트 디렉터리를 준비하고 Cline에 Dataset과 절대 소스 루트를 지정한다. 예를 들어 다음과 같이 요청한다.
+
+> dart-control 스킬로 선택한 Dataset의 로그 원인을 조사해 주세요. 이 Dataset의 Linux 소스 루트는 `/work/project`입니다. 기록된 소스 파일과 줄을 읽어 근거를 보여 주세요.
+
+Cline은 공개 `dataset inspect`의 Dataset별 source binding을 조회하고, 사용자가 지정한 루트를 `dataset source set`으로 등록한 뒤 재조회한다. 등록은 메타데이터 저장이며 파일을 복사하지 않는다. 같은 상대 경로라도 Dataset마다 다른 루트를 사용한다. Windows DB·가져오기 경로와 Linux 루트를 혼동하지 않는다. 등록되지 않은 루트, 잘못된 디렉터리, 없는 소스 파일은 구분해서 안내하며, 기록된 경로를 해석할 수 없으면 확인을 요청한다. 이름만 같은 파일이나 임의 빌드 경로 변환으로 대체하지 않는다. DM `file`/`source_line`은 소스 위치이고 DM `LineNo` 및 Tag `lineNo`는 로그 행이다. 조사 결과는 실제 읽은 파일과 줄, 추론의 한계를 함께 제시한다. 합성 예제와 실제 인수 결과는 [소스 조사 검증](verification/issue-6.md)을 참고한다.
