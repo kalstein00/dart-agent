@@ -1,6 +1,6 @@
 ---
 name: dart-control
-description: Connect Linux Cline to a running Windows DART application, inspect its status, and start or reuse an explicit single-window control session with the official DART 2.1.0 CLI.
+description: Connect Linux Cline to a running Windows DART application, select the intended window, and retain its explicit control session with the official DART 2.1.0 CLI.
 ---
 
 # DART control
@@ -11,6 +11,6 @@ The supported application, CLI and command contract are **2.1.0, protocol 2**. C
 
 Connection bundles and official profiles are private. Use a bundle file via stdin and an explicitly chosen profile; never print its contents or put credentials in command arguments, transcripts, repository files or evidence. Keep personal profiles outside this skill. Never auto-forget or replace trust after an error.
 
-For each task, retain the explicit profile, appId, windowId and sessionId returned by DART. Inspect the app and session again before reusing them. A restart or target change invalidates the binding; never substitute GUI focus. A single available window may be selected; multiple windows require an explicit user target. Return the public status, exact binding and any missing prerequisite.
+For each task, retain the explicit profile, appId, windowId and sessionId returned by DART. The current request's explicit target takes priority over a previous selection; otherwise reuse a valid previous selection, or select the sole available window only when there was no previous selection. Without a current explicit target, if a previous target disappeared, ask before selecting a replacement. Ask when multiple candidates remain ambiguous, without executing business commands. Reinspect the app, window and session before reuse. A restart, target change or invalid session requires rechecking and reselection while preserving the user's intent; never substitute GUI focus. Return the public status, exact binding and any missing prerequisite.
 
-For later work, use `command list`, `command inspect --json '{"command":"..."}'` and the installed reference/catalog to find commands, then inspect current inputs before executing. This ticket supplies connection and single-window session support; data workflows are expanded separately. Windows file paths stay on Windows; Linux sources stay on Linux.
+For later work, use `command list`, `command inspect --json '{"command":"..."}'` and the installed reference/catalog to find commands, then inspect current inputs before executing. Data workflows are expanded separately. Windows file paths stay on Windows; Linux sources stay on Linux.
