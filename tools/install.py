@@ -7,6 +7,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import zipfile
 from urllib.error import URLError
 from urllib.parse import quote
 from urllib.request import urlopen
@@ -16,7 +17,8 @@ from prepare_release import DEFAULT_LOCK, load, prepare, require, safe_name
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def install(skills_dir, prepared_dir=None, update=False, asset_dir=None):
+def install(skills_dir, prepared_dir=None, update=False, asset_dir=None, asset_zip=None):
+    local_zip = asset_zip is not None
     lock = load(DEFAULT_LOCK)
     compatibility = load(ROOT / 'skills/dart-control/compatibility.json')
     require(compatibility['skillVersion'] == lock['skillVersion'], 'incompatible skill version')
@@ -31,14 +33,23 @@ def install(skills_dir, prepared_dir=None, update=False, asset_dir=None):
         if source is None:
             source = work / 'download'
             source.mkdir()
-            for row in lock['assets']:
-                name = safe_name(row['file'])
+            if asset_zip is None:
+                name = 'dart-agent-release-assets.zip'
                 url = ('https://github.com/kalstein00/dart-agent/releases/download/' +
-                       quote('v' + lock['skillVersion'], safe='') + '/' + quote(name, safe=''))
-                with urlopen(url, timeout=60) as response, (source / name).open('wb') as output:
+                       quote('v' + lock['skillVersion'], safe='') + '/' + name)
+                asset_zip = work / name
+                with urlopen(url, timeout=60) as response, asset_zip.open('wb') as output:
                     shutil.copyfileobj(response, output)
-        # Reuse the official asset checks and actual Linux execution gate. No
-        # network transport or command registry is reimplemented here.
+            with zipfile.ZipFile(asset_zip) as archive:
+                records = {safe_name(row['file']): row for row in lock['assets']}
+                entries = archive.infolist()
+                require(len(entries) == len(records) and {item.filename for item in entries} == set(records),
+                        'unexpected release archive contents')
+                for item in entries:
+                    require(item.file_size == records[item.filename]['bytes'], 'release archive size mismatch')
+                    with archive.open(item) as response, (source / item.filename).open('wb') as output:
+                        shutil.copyfileobj(response, output)
+        # Reuse the official asset checks and actual Linux execution gate.
         assets = work / 'assets'
         prepare(DEFAULT_LOCK, source, assets)
         candidate = work / 'dart-control'
@@ -49,7 +60,7 @@ def install(skills_dir, prepared_dir=None, update=False, asset_dir=None):
             shutil.copy2(assets / name, candidate / 'references' / name)
         (candidate / 'installation.json').write_text(json.dumps(dict(
             skillVersion=lock['skillVersion'], dartVersion=lock['dartVersion'],
-            source='local-release-assets' if asset_dir else ('development-prepared-assets' if prepared_dir else 'github-release'),
+            source='local-release-assets' if asset_dir or local_zip else ('development-prepared-assets' if prepared_dir else 'github-release'),
             release='kalstein00/dart-agent@v' + lock['skillVersion'])) + '\n')
         # Personal profiles remain at the official CLI location, outside the
         # managed skill. Roll back a failed replacement.
@@ -71,14 +82,15 @@ def main():
     sources = parser.add_mutually_exclusive_group()
     sources.add_argument('--prepared-dir', type=Path, help='development only: verified preparation output, not Release proof')
     sources.add_argument('--asset-dir', type=Path, help='local directory containing pinned Release assets')
+    sources.add_argument('--asset-zip', type=Path, help='local Release assets ZIP')
     parser.add_argument('--update', action='store_true', help='explicitly replace managed skill files, preserving official profiles')
     args = parser.parse_args()
     try:
-        target = install(args.skills_dir.expanduser().absolute(), args.prepared_dir, args.update, args.asset_dir)
-    except (OSError, ValueError, KeyError, TypeError, subprocess.SubprocessError, URLError) as error:
+        target = install(args.skills_dir.expanduser().absolute(), args.prepared_dir, args.update, args.asset_dir, args.asset_zip)
+    except (OSError, ValueError, KeyError, TypeError, subprocess.SubprocessError, URLError, zipfile.BadZipFile) as error:
         print(f'installation failed: {error}', file=sys.stderr)
         return 1
-    print(json.dumps(dict(ok=True, skill=str(target), source='local-release-assets' if args.asset_dir else ('development-prepared-assets' if args.prepared_dir else 'github-release'))))
+    print(json.dumps(dict(ok=True, skill=str(target), source='local-release-assets' if args.asset_dir or args.asset_zip else ('development-prepared-assets' if args.prepared_dir else 'github-release'))))
     return 0
 
 

@@ -12,12 +12,12 @@ cd dart-agent
 uv run --no-project python tools/install.py
 ```
 
-설치 도구는 이 저장소의 고정 Release `v0.1.0` 첨부물 7개를 내려받아 저장소의 고정 크기·SHA256·계약으로 검증한다. 설치 직전 Linux 실행 파일의 실제 version/contract identity/export도 확인한다. 검증 실패 시 기존 스킬은 보존된다. Release가 아직 발행되지 않았거나 접근할 수 없으면 설치 실패로 보고한다. 다른 버전이나 공식 upstream으로 자동 대체하지 않는다.
+설치 도구는 고정 Release `v0.1.0`의 `dart-agent-release-assets.zip`을 내려받아 내부의 공식 파일 7개를 저장소의 고정 크기·SHA256·계약으로 검증한다. 설치 직전 Linux 실행 파일의 실제 version/contract identity/export도 확인한다. 검증 실패 시 기존 스킬은 보존된다. 다른 버전이나 공식 upstream으로 자동 대체하지 않는다.
 
-다운로드는 `api.github.com`을 사용하지 않고 `github.com`의 공개 Release URL을 사용한다. GitHub는 이를 `release-assets.githubusercontent.com`으로 리디렉션하므로 두 호스트에 대한 HTTPS 접근이 필요하다. 표준 `HTTPS_PROXY` 환경 변수를 사용할 수 있다. 두 번째 호스트도 차단되면 네트워크 접근이 가능한 환경에서 `gh release download v0.1.0 --repo kalstein00/dart-agent --dir release-assets`로 파일을 받은 뒤 디렉터리를 Linux로 옮겨 다음과 같이 설치한다.
+다운로드는 `api.github.com`을 사용하지 않고 `github.com`의 공개 Release URL을 사용한다. GitHub는 이를 `release-assets.githubusercontent.com`으로 리디렉션하므로 두 호스트에 대한 HTTPS 접근이 필요하다. 표준 `HTTPS_PROXY` 환경 변수를 사용할 수 있다. 차단된 환경에서는 접근 가능한 곳에서 Release의 `dart-agent-release-assets.zip` 하나를 받아 Linux로 옮겨 설치한다.
 
 ```bash
-uv run --no-project python tools/install.py --asset-dir /path/to/release-assets
+uv run --no-project python tools/install.py --asset-zip /path/to/dart-agent-release-assets.zip
 ```
 
 로컬 파일도 동일한 lock과 실제 실행 검증을 거치며 설치 출처는 `local-release-assets`로 기록된다. 업데이트에는 `--update`를 추가한다.

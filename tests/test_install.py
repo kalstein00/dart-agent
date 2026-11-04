@@ -4,11 +4,29 @@ from pathlib import Path
 import subprocess
 import tempfile
 import unittest
+import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
 class InstallTests(unittest.TestCase):
+    def test_archive_rejects_unexpected_paths_without_replacing_installation(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            target = root / 'skills/dart-control'
+            target.mkdir(parents=True)
+            (target / 'keep').write_text('existing')
+            archive = root / 'assets.zip'
+            with zipfile.ZipFile(archive, 'w') as bundle:
+                bundle.writestr('../escape', 'bad')
+            result = subprocess.run(['uv', 'run', '--no-project', 'python', str(ROOT / 'tools/install.py'),
+                                     '--skills-dir', str(target.parent), '--asset-zip', str(archive), '--update'],
+                                    capture_output=True, text=True)
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn('unexpected release archive contents', result.stderr)
+            self.assertEqual((target / 'keep').read_text(), 'existing')
+            self.assertFalse((root / 'escape').exists())
+
     def test_missing_release_fails_without_installing_a_skill(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)

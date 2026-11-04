@@ -12,7 +12,14 @@ uv run --no-project python tools/prepare_release.py --output /tmp/dart-agent-rel
 
 ## 출력과 배포 정보
 
-다음 8개 파일을 개별 Release 첨부물로 사용한다. 도구는 게시하지 않으며 별도 통합 ZIP을 만들지 않는다. upstream의 `dart-agent-bundle.zip`은 공식 참조 자료 원본이므로 그대로 첨부한다.
+준비 디렉터리에는 다음 8개 파일이 포함된다. 이 중 공식 7개 파일을 통합 ZIP으로 만들어 Release에 첨부한다. 생성된 배포 정보는 설치 시 다시 생성하므로 ZIP에 포함하지 않는다.
+
+```bash
+uv run --no-project python tools/package_release.py --source-dir /tmp/dart-agent-release-0.1.0 --output /tmp/dart-agent-release-assets.zip
+gh release upload v0.1.0 /tmp/dart-agent-release-assets.zip --repo kalstein00/dart-agent
+```
+
+패키징 도구는 각 파일의 고정 크기와 SHA256을 검증하며 기존 ZIP을 덮어쓰지 않는다.
 
 | 파일 | 내용 |
 | --- | --- |
