@@ -1,6 +1,6 @@
 # Connection and window-bound session
 
-Resolve `DART` below to this skill's absolute `bin/dart` path. Replace all placeholders from actual responses; do not type them literally.
+Resolve `DART` below to this skill's absolute `bin/dart` path on Linux or `bin/dart.exe` on Windows. Use the host shell's syntax to invoke it. Replace all placeholders from actual responses; do not type them literally.
 
 1. Run `"$DART" version` and `"$DART" contract identity`. Require ok=true, protocolVersion=2, version=2.1.0. Identity.data.contract must have releaseVersion=2.1.0, protocolVersion=2, formatVersion=2 and exactly the fingerprint in dart-agent-distribution.json (algorithm, projectionVersion and value).
 2. Ask for an existing official profile name, or a private fresh bundle file and profile name. Windows owner starts DART 2.1.0, opens Settings > External Control, enables Remote Access and issues a one-use connection bundle with the Linux-reachable HTTPS endpoint. Linux cannot enable it or launch the Windows app. No WSL/shared-drive/fixed-port assumption applies.

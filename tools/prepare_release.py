@@ -44,7 +44,7 @@ def identity(document, lock):
 
 
 def run_cli(executable, args):
-    result = subprocess.run([str(executable), *args], capture_output=True, text=True, timeout=60, check=True)
+    result = subprocess.run([str(executable), *args], capture_output=True, text=True, encoding='utf-8', timeout=60, check=True)
     response = json.loads(result.stdout)
     require(response.get('ok') is True and response.get('protocolVersion') == 2,
             'CLI did not report a successful protocol 2 response')
@@ -59,8 +59,10 @@ def prepare(lock_path, source, output):
             lock['contract']['fingerprint']['algorithm'] == 'sha256' and
             lock['contract']['fingerprint']['projectionVersion'] == 1, 'incompatible contract format')
     require(not output.exists(), 'output already exists; choose a fresh directory')
-    require(platform.system() == 'Linux' and platform.machine() in {'x86_64', 'AMD64'},
-            'preparation requires Linux x64 to execute the final CLI')
+    system = platform.system()
+    require(system in {'Linux', 'Windows'} and platform.machine().lower() in {'x86_64', 'amd64'},
+            'preparation requires Linux or Windows x64 to execute the final CLI')
+    platform_key = system.lower() + '-x64'
     records = {safe_name(a['file']): a for a in lock['assets']}
     require(len(records) == len(lock['assets']) == 7, 'expected exactly seven unique upstream assets')
     required = {'dart-agent-manifest.json', 'dart-cli-manifest.json', 'dart-agent-bundle.zip',
@@ -128,8 +130,9 @@ def prepare(lock_path, source, output):
             require(archive.read('Reference.md') == (stage / 'dart-cli-reference.md').read_bytes() and
                     archive.read('catalog.json') == (stage / 'dart-cli-command-catalog.json').read_bytes(),
                     'bundled public reference/catalog mismatch')
-        executable = stage / platforms['linux-x64']['file']
-        executable.chmod(0o755)
+        executable = stage / platforms[platform_key]['file']
+        if system == 'Linux':
+            executable.chmod(0o755)
         version = run_cli(executable, ['version'])
         require(version['data']['version'] == lock['dartVersion'], 'executing CLI version mismatch')
         observed = run_cli(executable, ['contract', 'identity'])
@@ -148,9 +151,10 @@ def prepare(lock_path, source, output):
                             protocolVersion=lock['protocolVersion'], contract=lock['contract'],
                             upstream=lock['upstream'], platforms=platforms,
                             assets=[{k: row[k] for k in ('file', 'bytes', 'sha256')} for row in lock['assets']],
-                            verification=dict(linux=dict(system=platform.system(), machine=platform.machine(),
-                                                         version=version, identity=observed, catalogMatches=True),
-                                              windows='integrity-only; native execution not performed'))
+                            verification={system.lower(): dict(system=system, machine=platform.machine(),
+                                                               version=version, identity=observed, catalogMatches=True),
+                                          ('windows' if system == 'Linux' else 'linux'):
+                                              'integrity-only; native execution not performed'})
         (stage / 'dart-agent-distribution.json').write_text(json.dumps(distribution, indent=2) + '\n', encoding='utf-8')
         # Publish only after every check succeeds; a failed run leaves no usable candidate.
         os.rename(stage, output)

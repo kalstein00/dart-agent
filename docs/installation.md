@@ -1,10 +1,10 @@
-# Linux Cline 설치와 Windows DART 연결
+# Cline 설치와 Windows DART 연결
 
-지원 조합은 Linux x64 glibc, Cline CLI, Windows DART 앱 2.1.0, 공식 CLI 2.1.0, protocol 2다. 회사 Linux에서 Windows로 직접 HTTPS 연결한다. WSL·공유 드라이브·특정 포트를 요구하지 않는다. 현재 WSL 검증은 회사 Linux 배포판 및 회사 네트워크 검증을 대신하지 않는다.
+설치 도구는 Linux x64 glibc와 Windows x64에서 해당 OS의 공식 CLI 2.1.0을 설치한다. DART 앱은 Windows 2.1.0, protocol 2다. Linux에서 연결할 때 WSL·공유 드라이브·특정 포트를 요구하지 않는다. 회사 Linux 배포판 및 회사 네트워크 검증은 별도로 필요하다.
 
 ## clone 설치
 
-Linux에 `git`, `uv`, Cline CLI를 준비한다. 공개 Release 다운로드에는 `gh` 인증이 필요하지 않다.
+설치할 OS에 `git`, `uv`, Cline CLI를 준비한다. 설치에 `gh` 인증이 필요하지 않다.
 
 ```bash
 git clone https://github.com/kalstein00/dart-agent.git
@@ -12,7 +12,7 @@ cd dart-agent
 uv run --no-project python tools/install.py
 ```
 
-설치 도구는 저장소에 포함된 `release/dart-agent-release-assets.zip`의 공식 파일 7개를 고정 크기·SHA256·계약으로 검증한다. 설치 시 다운로드나 GitHub 인증은 필요하지 않다. 설치 직전 Linux 실행 파일의 실제 version/contract identity/export도 확인한다. 검증 실패 시 기존 스킬은 보존된다.
+설치 도구는 저장소에 포함된 `release/dart-agent-release-assets.zip`의 공식 파일 7개를 고정 크기·SHA256·계약으로 검증한다. 설치 시 다운로드나 GitHub 인증은 필요하지 않다. 설치 직전 현재 OS 실행 파일의 실제 version/contract identity/export도 확인한다. 검증 실패 시 기존 스킬은 보존된다.
 
 별도로 준비한 ZIP을 사용할 경우 아래처럼 경로를 지정할 수 있다.
 
@@ -24,7 +24,7 @@ uv run --no-project python tools/install.py --asset-zip /path/to/dart-agent-rele
 
 체크아웃의 `skills/dart-control/compatibility.json`은 스킬 버전과 지원하는 DART/protocol을 고정한다. 설치 전에 이 값과 checkout의 release lock이 일치해야 한다. 소스와 호환되는 버전을 명시적으로 checkout한 뒤 설치하며, 불일치하면 자동으로 다른 버전을 찾지 않는다.
 
-설치 위치는 Cline 전역 `~/.cline/skills/dart-control`이다. 실행 파일은 그 안의 `bin/dart`, 공개 명령 참조는 `references/`에 있다. `--skills-dir`은 별도 Cline 구성의 전역 skills 디렉터리 지정에만 사용한다. 일반 업데이트는 저장소를 명시적으로 갱신한 뒤 아래 명령을 실행한다. 공식 개인 연결 프로필 `~/.dart/connections` 또는 `DART_CLI_PROFILE_DIR`은 설치 경로 밖에 유지한다. 스킬 디렉터리에 개인 파일을 저장하지 않는다.
+설치 위치는 Cline 전역 `~/.cline/skills/dart-control`이다. 실행 파일은 Linux에서 `bin/dart`, Windows에서 `bin/dart.exe`이며 공개 명령 참조는 `references/`에 있다. `--skills-dir`은 별도 Cline 구성의 전역 skills 디렉터리 지정에만 사용한다. 일반 업데이트는 저장소를 명시적으로 갱신한 뒤 아래 명령을 실행한다. 공식 개인 연결 프로필 `~/.dart/connections` 또는 `DART_CLI_PROFILE_DIR`은 설치 경로 밖에 유지한다. 스킬 디렉터리에 개인 파일을 저장하지 않는다.
 
 ```bash
 uv run --no-project python tools/install.py --update

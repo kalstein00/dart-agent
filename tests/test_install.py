@@ -1,5 +1,6 @@
 """Public clone-install entry point; real prepared assets are supplied per test."""
 import os
+import platform
 from pathlib import Path
 import subprocess
 import tempfile
@@ -10,6 +11,22 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class InstallTests(unittest.TestCase):
+    @unittest.skipUnless(platform.system() == 'Windows' and platform.machine().lower() in {'amd64', 'x86_64'}, 'requires Windows x64')
+    def test_bundled_archive_installs_working_windows_cli(self):
+        import json
+        with tempfile.TemporaryDirectory() as temporary:
+            skills = Path(temporary) / 'skills'
+            result = subprocess.run(['uv', 'run', '--no-project', 'python', str(ROOT / 'tools/install.py'),
+                                     '--skills-dir', str(skills)], capture_output=True, text=True)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            target = skills / 'dart-control'
+            executable = target / 'bin/dart.exe'
+            version = subprocess.run([str(executable), 'version'], capture_output=True, text=True, encoding='utf-8', check=True)
+            self.assertEqual(json.loads(version.stdout)['data']['version'], '2.1.0')
+            self.assertEqual(json.loads((target / 'installation.json').read_text())['source'], 'bundled-archive')
+            distribution = json.loads((target / 'references/dart-agent-distribution.json').read_text(encoding='utf-8'))
+            self.assertTrue(distribution['verification']['windows']['catalogMatches'])
+
     def test_archive_rejects_unexpected_paths_without_replacing_installation(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
@@ -62,6 +79,7 @@ class InstallTests(unittest.TestCase):
             self.assertNotEqual(result.returncode, 0)
             self.assertEqual((target / 'keep').read_text(), 'existing installation')
 
+    @unittest.skipIf(os.name == 'nt', 'fixture uses a Linux shell executable')
     def test_clone_install_and_update_keep_official_profiles_outside_skill(self):
         import json
         import shutil

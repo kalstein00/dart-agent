@@ -2,6 +2,7 @@
 import argparse
 import json
 import os
+import platform
 from pathlib import Path
 import shutil
 import subprocess
@@ -41,13 +42,15 @@ def install(skills_dir, prepared_dir=None, update=False, asset_dir=None, asset_z
                     require(item.file_size == records[item.filename]['bytes'], 'release archive size mismatch')
                     with archive.open(item) as response, (source / item.filename).open('wb') as output:
                         shutil.copyfileobj(response, output)
-        # Reuse the official asset checks and actual Linux execution gate.
+        # Reuse the official asset checks and native execution gate.
         assets = work / 'assets'
         prepare(DEFAULT_LOCK, source, assets)
         candidate = work / 'dart-control'
         shutil.copytree(ROOT / 'skills/dart-control', candidate)
         (candidate / 'bin').mkdir()
-        shutil.copy2(assets / 'dart-cli-linux-x64', candidate / 'bin/dart')
+        windows = platform.system() == 'Windows'
+        shutil.copy2(assets / ('dart-cli-windows-x64.exe' if windows else 'dart-cli-linux-x64'),
+                     candidate / 'bin' / ('dart.exe' if windows else 'dart'))
         for name in ('dart-cli-reference.md', 'dart-cli-command-catalog.json', 'dart-agent-distribution.json'):
             shutil.copy2(assets / name, candidate / 'references' / name)
         (candidate / 'installation.json').write_text(json.dumps(dict(

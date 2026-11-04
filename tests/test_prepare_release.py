@@ -1,6 +1,7 @@
 """Exercise release preparation through its maintainer-facing CLI."""
 import hashlib
 import json
+import os
 from pathlib import Path
 import subprocess
 import tempfile
@@ -71,6 +72,7 @@ class PreparationTests(unittest.TestCase):
                                '--lock', str(self.lock), '--source-dir', str(self.source),
                                '--output', str(self.output)], capture_output=True, text=True)
 
+    @unittest.skipIf(os.name == 'nt', 'fixture uses a Linux shell executable')
     def test_prepares_verified_assets_and_independent_skill_version(self):
         result = self.run_tool()
         self.assertEqual(result.returncode, 0, result.stderr)
@@ -145,6 +147,7 @@ class PreparationTests(unittest.TestCase):
         self.assertIn('preparation failed', result.stderr)
         self.assertFalse(self.output.exists())
 
+    @unittest.skipIf(os.name == 'nt', 'fixture uses a Linux shell executable')
     def test_final_executable_reporting_wrong_version_is_rejected(self):
         executable = self.source / 'dart-cli-linux-x64'
         executable.write_text(executable.read_text().replace('2.1.0', '2.0.0'))

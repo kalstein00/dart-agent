@@ -1,11 +1,11 @@
 ---
 name: dart-control
-description: Connect Linux Cline to a running Windows DART application, select the intended window, and retain its explicit control session with the official DART 2.1.0 CLI.
+description: Connect Cline to a running Windows DART application, select the intended window, and retain its explicit control session with the official DART 2.1.0 CLI.
 ---
 
 # DART control
 
-Use this skill for DART 앱 connection, status, and control requests. Read `references/connection.md` before connecting. The installed official executable is `bin/dart` relative to this skill directory; resolve the absolute skill directory from this loaded file. Run that executable directly, never a guessed PATH command. Do not start or discover a Windows app from Linux.
+Use this skill for DART 앱 connection, status, and control requests. Read `references/connection.md` before connecting. The installed official executable is `bin/dart` on Linux and `bin/dart.exe` on Windows, relative to this skill directory; resolve the absolute skill directory from this loaded file. Run that executable directly, never a guessed PATH command. Do not start or discover a Windows app from Linux.
 
 The supported application, CLI and command contract are **2.1.0, protocol 2**. Compare the executing CLI and connected Main independently against `references/dart-agent-distribution.json`; a failed or missing response is not compatibility proof. Do not run business commands on a mismatch.
 
