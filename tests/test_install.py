@@ -27,11 +27,11 @@ class InstallTests(unittest.TestCase):
             self.assertEqual((target / 'keep').read_text(), 'existing')
             self.assertFalse((root / 'escape').exists())
 
-    def test_missing_release_fails_without_installing_a_skill(self):
+    def test_missing_archive_fails_without_installing_a_skill(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
-            result = subprocess.run(['uv', 'run', '--no-project', 'python', str(ROOT / 'tools/install.py'), '--skills-dir', str(root / 'skills')],
-                                    env={**os.environ, 'https_proxy': 'http://127.0.0.1:1', 'no_proxy': ''}, capture_output=True, text=True)
+            result = subprocess.run(['uv', 'run', '--no-project', 'python', str(ROOT / 'tools/install.py'), '--skills-dir', str(root / 'skills'),
+                                     '--asset-zip', str(root / 'missing.zip')], capture_output=True, text=True)
             self.assertNotEqual(result.returncode, 0)
             self.assertIn('installation failed', result.stderr)
             self.assertFalse((root / 'skills/dart-control').exists())
@@ -144,7 +144,7 @@ class InstallTests(unittest.TestCase):
         self.assertEqual((target / 'keep').read_text(), 'existing')
         self.assertEqual(profile.read_text(), 'private-profile-marker')
 
-    def test_download_failure_during_update_preserves_skill_and_profile(self):
+    def test_missing_archive_during_update_preserves_skill_and_profile(self):
         with tempfile.TemporaryDirectory() as temporary:
             home = Path(temporary)
             target = home / '.cline/skills/dart-control'
@@ -153,8 +153,9 @@ class InstallTests(unittest.TestCase):
             profile = home / '.dart/connections/personal.json'
             profile.parent.mkdir(parents=True)
             profile.write_text('private-profile-marker')
-            result = subprocess.run(['uv', 'run', '--no-project', 'python', str(ROOT / 'tools/install.py'), '--update'],
-                                    env={**os.environ, 'HOME': str(home), 'https_proxy': 'http://127.0.0.1:1', 'no_proxy': ''},
+            result = subprocess.run(['uv', 'run', '--no-project', 'python', str(ROOT / 'tools/install.py'), '--update',
+                                     '--skills-dir', str(home / '.cline/skills'), '--asset-zip', str(home / 'missing.zip')],
+                                    env={**os.environ, 'HOME': str(home)},
                                     capture_output=True, text=True)
             self.assertNotEqual(result.returncode, 0)
             self.assertIn('installation failed', result.stderr)

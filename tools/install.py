@@ -1,4 +1,4 @@
-"""Install the pinned DART control skill from dart-agent Release attachments."""
+"""Install the pinned DART control skill from the bundled archive."""
 import argparse
 import json
 import os
@@ -8,9 +8,6 @@ import subprocess
 import sys
 import tempfile
 import zipfile
-from urllib.error import URLError
-from urllib.parse import quote
-from urllib.request import urlopen
 
 from prepare_release import DEFAULT_LOCK, load, prepare, require, safe_name
 
@@ -34,12 +31,7 @@ def install(skills_dir, prepared_dir=None, update=False, asset_dir=None, asset_z
             source = work / 'download'
             source.mkdir()
             if asset_zip is None:
-                name = 'dart-agent-release-assets.zip'
-                url = ('https://github.com/kalstein00/dart-agent/releases/download/' +
-                       quote('v' + lock['skillVersion'], safe='') + '/' + name)
-                asset_zip = work / name
-                with urlopen(url, timeout=60) as response, asset_zip.open('wb') as output:
-                    shutil.copyfileobj(response, output)
+                asset_zip = ROOT / 'release/dart-agent-release-assets.zip'
             with zipfile.ZipFile(asset_zip) as archive:
                 records = {safe_name(row['file']): row for row in lock['assets']}
                 entries = archive.infolist()
@@ -60,7 +52,7 @@ def install(skills_dir, prepared_dir=None, update=False, asset_dir=None, asset_z
             shutil.copy2(assets / name, candidate / 'references' / name)
         (candidate / 'installation.json').write_text(json.dumps(dict(
             skillVersion=lock['skillVersion'], dartVersion=lock['dartVersion'],
-            source='local-release-assets' if asset_dir or local_zip else ('development-prepared-assets' if prepared_dir else 'github-release'),
+            source='local-release-assets' if asset_dir or local_zip else ('development-prepared-assets' if prepared_dir else 'bundled-archive'),
             release='kalstein00/dart-agent@v' + lock['skillVersion'])) + '\n')
         # Personal profiles remain at the official CLI location, outside the
         # managed skill. Roll back a failed replacement.
@@ -87,10 +79,10 @@ def main():
     args = parser.parse_args()
     try:
         target = install(args.skills_dir.expanduser().absolute(), args.prepared_dir, args.update, args.asset_dir, args.asset_zip)
-    except (OSError, ValueError, KeyError, TypeError, subprocess.SubprocessError, URLError, zipfile.BadZipFile) as error:
+    except (OSError, ValueError, KeyError, TypeError, subprocess.SubprocessError, zipfile.BadZipFile) as error:
         print(f'installation failed: {error}', file=sys.stderr)
         return 1
-    print(json.dumps(dict(ok=True, skill=str(target), source='local-release-assets' if args.asset_dir or args.asset_zip else ('development-prepared-assets' if args.prepared_dir else 'github-release'))))
+    print(json.dumps(dict(ok=True, skill=str(target), source='local-release-assets' if args.asset_dir or args.asset_zip else ('development-prepared-assets' if args.prepared_dir else 'bundled-archive'))))
     return 0
 
 

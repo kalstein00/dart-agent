@@ -12,11 +12,11 @@ uv run --no-project python tools/prepare_release.py --output /tmp/dart-agent-rel
 
 ## 출력과 배포 정보
 
-준비 디렉터리에는 다음 8개 파일이 포함된다. 이 중 공식 7개 파일을 통합 ZIP으로 만들어 Release에 첨부한다. 생성된 배포 정보는 설치 시 다시 생성하므로 ZIP에 포함하지 않는다.
+준비 디렉터리에는 다음 8개 파일이 포함된다. 이 중 공식 7개 파일을 통합 ZIP으로 만들어 저장소에 포함한다. 생성된 배포 정보는 설치 시 다시 생성하므로 ZIP에 포함하지 않는다.
 
 ```bash
 uv run --no-project python tools/package_release.py --source-dir /tmp/dart-agent-release-0.1.0 --output /tmp/dart-agent-release-assets.zip
-gh release upload v0.1.0 /tmp/dart-agent-release-assets.zip --repo kalstein00/dart-agent
+# 검토 후 기존 release/dart-agent-release-assets.zip을 새 ZIP으로 교체한다.
 ```
 
 패키징 도구는 각 파일의 고정 크기와 SHA256을 검증하며 기존 ZIP을 덮어쓰지 않는다.
@@ -36,7 +36,7 @@ gh release upload v0.1.0 /tmp/dart-agent-release-assets.zip --repo kalstein00/da
 
 실제 Release 이름은 agent manifest의 `downloads[].file`을 따른다. 현재 CLI manifest의 `artifacts[].file`에는 `dart-linux-x64` 등 과거 이름이 남아 있으므로, os/cpu/libc와 동일 bytes/SHA256로 공개 다운로드를 연결한다. 오래된 문서의 이름으로 다운로드하지 않는다. 내부 ZIP은 정확한 파일 목록·파일별 해시·identity·standalone manifest를 검사하고, bundled Reference/catalog가 외부 공개 파일과 같은지 확인한다. transport와 명령 registry는 공식 CLI를 그대로 소비한다.
 
-준비 디렉터리는 검증된 공식 파일과 생성한 배포 정보만 포함한다. 개인 연결 번들·토큰·profile·회사 Dataset·회사 소스는 입력받거나 복사하지 않는다. 공식 번들에는 upstream이 공개한 `investigation-example/synthetic-values.sqlite`와 합성 예제 소스가 들어 있다. 실행 파일과 ZIP, 큰 참조 파일은 Git에 커밋하지 않는다.
+준비 디렉터리는 검증된 공식 파일과 생성한 배포 정보만 포함한다. 개인 연결 번들·토큰·profile·회사 Dataset·회사 소스는 입력받거나 복사하지 않는다. 공식 번들에는 upstream이 공개한 `investigation-example/synthetic-values.sqlite`와 합성 예제 소스가 들어 있다. Git에는 검증된 통합 ZIP만 포함한다.
 
 ## 검증 기록 — 2026-11-03
 

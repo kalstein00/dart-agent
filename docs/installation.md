@@ -12,9 +12,9 @@ cd dart-agent
 uv run --no-project python tools/install.py
 ```
 
-설치 도구는 고정 Release `v0.1.0`의 `dart-agent-release-assets.zip`을 내려받아 내부의 공식 파일 7개를 저장소의 고정 크기·SHA256·계약으로 검증한다. 설치 직전 Linux 실행 파일의 실제 version/contract identity/export도 확인한다. 검증 실패 시 기존 스킬은 보존된다. 다른 버전이나 공식 upstream으로 자동 대체하지 않는다.
+설치 도구는 저장소에 포함된 `release/dart-agent-release-assets.zip`의 공식 파일 7개를 고정 크기·SHA256·계약으로 검증한다. 설치 시 다운로드나 GitHub 인증은 필요하지 않다. 설치 직전 Linux 실행 파일의 실제 version/contract identity/export도 확인한다. 검증 실패 시 기존 스킬은 보존된다.
 
-다운로드는 `api.github.com`을 사용하지 않고 `github.com`의 공개 Release URL을 사용한다. GitHub는 이를 `release-assets.githubusercontent.com`으로 리디렉션하므로 두 호스트에 대한 HTTPS 접근이 필요하다. 표준 `HTTPS_PROXY` 환경 변수를 사용할 수 있다. 차단된 환경에서는 접근 가능한 곳에서 Release의 `dart-agent-release-assets.zip` 하나를 받아 Linux로 옮겨 설치한다.
+별도로 준비한 ZIP을 사용할 경우 아래처럼 경로를 지정할 수 있다.
 
 ```bash
 uv run --no-project python tools/install.py --asset-zip /path/to/dart-agent-release-assets.zip
