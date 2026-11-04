@@ -12,11 +12,8 @@ class InstallTests(unittest.TestCase):
     def test_missing_release_fails_without_installing_a_skill(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
-            fake = root / 'gh'
-            fake.write_text('#!/bin/sh\nexit 1\n')
-            fake.chmod(0o755)
             result = subprocess.run(['uv', 'run', '--no-project', 'python', str(ROOT / 'tools/install.py'), '--skills-dir', str(root / 'skills')],
-                                    env={**os.environ, 'PATH': str(root) + ':' + os.environ['PATH']}, capture_output=True, text=True)
+                                    env={**os.environ, 'https_proxy': 'http://127.0.0.1:1', 'no_proxy': ''}, capture_output=True, text=True)
             self.assertNotEqual(result.returncode, 0)
             self.assertIn('installation failed', result.stderr)
             self.assertFalse((root / 'skills/dart-control').exists())
@@ -43,7 +40,7 @@ class InstallTests(unittest.TestCase):
             source.mkdir()
             (source / 'dart-cli-linux-x64').write_text('untrusted executable')
             result = subprocess.run(['uv', 'run', '--no-project', 'python', str(ROOT / 'tools/install.py'), '--skills-dir', str(root / 'skills'),
-                                     '--prepared-dir', str(source), '--update'], capture_output=True, text=True)
+                                     '--asset-dir', str(source), '--update'], capture_output=True, text=True)
             self.assertNotEqual(result.returncode, 0)
             self.assertEqual((target / 'keep').read_text(), 'existing installation')
 
@@ -138,11 +135,8 @@ class InstallTests(unittest.TestCase):
             profile = home / '.dart/connections/personal.json'
             profile.parent.mkdir(parents=True)
             profile.write_text('private-profile-marker')
-            fake = home / 'gh'
-            fake.write_text('#!/bin/sh\nexit 1\n')
-            fake.chmod(0o755)
             result = subprocess.run(['uv', 'run', '--no-project', 'python', str(ROOT / 'tools/install.py'), '--update'],
-                                    env={**os.environ, 'HOME': str(home), 'PATH': str(home) + ':' + os.environ['PATH']},
+                                    env={**os.environ, 'HOME': str(home), 'https_proxy': 'http://127.0.0.1:1', 'no_proxy': ''},
                                     capture_output=True, text=True)
             self.assertNotEqual(result.returncode, 0)
             self.assertIn('installation failed', result.stderr)

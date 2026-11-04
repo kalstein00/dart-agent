@@ -4,7 +4,7 @@
 
 ## clone 설치
 
-Linux에 `git`, `gh`(GitHub CLI), `uv`, Cline CLI를 준비한다. 비공개 저장소라면 `gh auth login`으로 접근 권한을 설정한다.
+Linux에 `git`, `uv`, Cline CLI를 준비한다. 공개 Release 다운로드에는 `gh` 인증이 필요하지 않다.
 
 ```bash
 git clone https://github.com/kalstein00/dart-agent.git
@@ -13,6 +13,14 @@ uv run --no-project python tools/install.py
 ```
 
 설치 도구는 이 저장소의 고정 Release `v0.1.0` 첨부물 7개를 내려받아 저장소의 고정 크기·SHA256·계약으로 검증한다. 설치 직전 Linux 실행 파일의 실제 version/contract identity/export도 확인한다. 검증 실패 시 기존 스킬은 보존된다. Release가 아직 발행되지 않았거나 접근할 수 없으면 설치 실패로 보고한다. 다른 버전이나 공식 upstream으로 자동 대체하지 않는다.
+
+다운로드는 `api.github.com`을 사용하지 않고 `github.com`의 공개 Release URL을 사용한다. GitHub는 이를 `release-assets.githubusercontent.com`으로 리디렉션하므로 두 호스트에 대한 HTTPS 접근이 필요하다. 표준 `HTTPS_PROXY` 환경 변수를 사용할 수 있다. 두 번째 호스트도 차단되면 네트워크 접근이 가능한 환경에서 `gh release download v0.1.0 --repo kalstein00/dart-agent --dir release-assets`로 파일을 받은 뒤 디렉터리를 Linux로 옮겨 다음과 같이 설치한다.
+
+```bash
+uv run --no-project python tools/install.py --asset-dir /path/to/release-assets
+```
+
+로컬 파일도 동일한 lock과 실제 실행 검증을 거치며 설치 출처는 `local-release-assets`로 기록된다. 업데이트에는 `--update`를 추가한다.
 
 체크아웃의 `skills/dart-control/compatibility.json`은 스킬 버전과 지원하는 DART/protocol을 고정한다. 설치 전에 이 값과 checkout의 release lock이 일치해야 한다. 소스와 호환되는 버전을 명시적으로 checkout한 뒤 설치하며, 불일치하면 자동으로 다른 버전을 찾지 않는다.
 
