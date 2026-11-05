@@ -2,18 +2,12 @@
 
 DART 앱을 공식 CLI로 제어하는 에이전트 스킬 저장소.
 
-공식 DART 2.1.0의 Linux·Windows CLI와 참조 자료를 검증해 Release 첨부물로 준비한다. [준비 방법과 실제 Linux 실행 검증](docs/release-preparation.md)을 참고한다.
+현재 체크아웃은 DART 2.1.0 개발 후보의 Linux·Windows CLI와 참조 자료를 포함하며 [출처와 검증 범위](docs/release-preparation.md)를 기록한다. 공개 DART `v2.1.0` 릴리스는 이 후보와 계약이 다르다.
 
-```bash
-uv run --no-project python tools/prepare_release.py --output /tmp/dart-agent-release-0.1.0
-```
-
-실행 파일은 Git 소스에 포함하지 않는다. 준비 도구는 공식 DART Release에서 직접 내려받으므로 최초 dart-agent Release 준비에도 사용할 수 있다.
-
-Linux Cline 전역 설치와 Windows 담당자의 Remote Access 설정, 비공개 번들 등록 및 단일 창 세션 안내는 [설치·연결 문서](docs/installation.md)를 참고한다.
+Linux Cline 전역 설치와 Windows Remote Access의 PIN 페어링 및 단일 창 세션 안내는 [설치·연결 문서](docs/installation.md)를 참고한다.
 
 ```bash
 uv run --no-project python tools/install.py
 ```
 
-고정 dart-agent `v0.1.0` Release가 필요하다. 아직 발행 전이면 설치는 실패하며, 개발용 준비 자산 설치는 공개 Release 설치 검증과 구분한다.
+설치 도구는 저장소 ZIP과 고정 해시·계약을 검증한다. 기존 설치를 교체하려면 `--update`를 명시한다. 개발 후보 검증은 공개 Release 인수를 대신하지 않는다.

@@ -8,55 +8,49 @@
     "fingerprint": {
       "algorithm": "sha256",
       "projectionVersion": 1,
-      "value": "6fc2f2381407bc3b1193293dae8a78dbfec6412ca1e8619d061a957dbb597042"
+      "value": "4f523920d4db114df90df3e46ea828de0d08bc7a52514d8d36b2035ad09418d5"
     }
   },
   "upstream": {
     "repository": "kalstein00/DART",
-    "tag": "v2.1.0"
+    "kind": "development-candidate",
+    "commit": "14a85e60d8ce69098bfba04e708abf409d5d2ff8"
   },
   "assets": [
     {
-      "file": "dart-agent-bundle.zip",
-      "bytes": 12448904,
-      "sha256": "9a9cdfa2621908d12756cf3a2dbd6e102fc9e13450518bd3adf15372744ff85b",
-      "assetId": 704575546
-    },
-    {
-      "file": "dart-agent-manifest.json",
-      "bytes": 1279,
-      "sha256": "973a913f26d97ca4015ecb6937b4adea238ba50b582e3a2fb1fcab11c86557c6",
-      "assetId": 704575545
-    },
-    {
-      "file": "dart-cli-command-catalog.json",
-      "bytes": 6406363,
-      "sha256": "f337affaf9b33d2d78c22392f1070abafbc76c0cced7d491af70642a47085899",
-      "assetId": 704491345
-    },
-    {
       "file": "dart-cli-linux-x64",
-      "bytes": 91641824,
-      "sha256": "7ba8d9a6ebce309b24368b5e7d9804ce2dbd26893c520248d3caf69d4aff0639",
-      "assetId": 704491343
+      "bytes": 92080096,
+      "sha256": "4b80cd341be375e628ea3d745cc5a5147a9d75b47e3056d5b579677950f308b7"
+    },
+    {
+      "file": "dart-cli-windows-x64.exe",
+      "bytes": 97664000,
+      "sha256": "92dec16e3913c6937ce061f66407fbec94b768dc0272f2246a9072a1063c556a"
     },
     {
       "file": "dart-cli-manifest.json",
       "bytes": 862,
-      "sha256": "2dd8e422ecc027206fedd4adbd1db0e0cda027fd6ffd9521722ce39b391a2010",
-      "assetId": 704491407
+      "sha256": "28d1d129db4f490fbf348b1ed6c82e7e50a23fa84007ff22c2dacf4401e65335"
     },
     {
       "file": "dart-cli-reference.md",
-      "bytes": 5560611,
-      "sha256": "3735cb2db803ee0af1c203931f1be0964c7b3459bf645f058e8dc1b69d430137",
-      "assetId": 704491347
+      "bytes": 5557964,
+      "sha256": "509a85ffd352b50ed28c474e5baa72228c44e741002b1767c1132a9f1cfa180b"
     },
     {
-      "file": "dart-cli-windows-x64.exe",
-      "bytes": 97225216,
-      "sha256": "56b417c0c32860d0f1b87db15cac06498d1f4989a5247ed246516c3f6f5f3021",
-      "assetId": 704491340
+      "file": "dart-cli-command-catalog.json",
+      "bytes": 6404529,
+      "sha256": "a9195db1965433fe375651c991bad2dd1f22667d3d31e6e20b8447f65e9e2df1"
+    },
+    {
+      "file": "dart-agent-bundle.zip",
+      "bytes": 12444043,
+      "sha256": "5dd41ecfa7efea7dfd55fb86c8d2cb7e16883fe389e38df040f7412b71768c6a"
+    },
+    {
+      "file": "dart-agent-manifest.json",
+      "bytes": 1279,
+      "sha256": "e6c730b69f4e5ce977b72e8b0cb893a7dca31bb4af5ff1513c7336a8f6b24fa8"
     }
   ]
 }

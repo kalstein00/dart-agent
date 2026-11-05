@@ -1,42 +1,21 @@
-# DART 2.1.0 Release 자산 준비
+# DART CLI 자산 준비
 
-`tools/prepare_release.py`는 유지보수 담당자가 공식 `kalstein00/DART`의 `v2.1.0` 배포를 검증하고 이 저장소의 Release에 첨부할 파일을 준비하는 Linux x64 도구다. Python 표준 라이브러리와 `uv`, 다운로드에는 인증된 `gh`가 필요하다. Bun/Node, DART 소스 checkout, 이미 게시된 dart-agent Release는 필요하지 않다.
+## 현재 개발 후보 — 2026-11-05
 
-```bash
-uv run --no-project python tools/prepare_release.py --output /tmp/dart-agent-release-0.1.0
-```
+기본 lock `release/dart-2.1.0.lock.json`과 저장소 ZIP은 DART 소스 커밋 `14a85e60d8ce69098bfba04e708abf409d5d2ff8`의 개발 후보이며 공개 릴리스가 아니다. 해당 후보의 계약 fingerprint는 `4f523920d4db114df90df3e46ea828de0d08bc7a52514d8d36b2035ad09418d5`다. 공개 `v2.1.0`의 원래 lock은 `release/dart-2.1.0-release.lock.json`에 보존한다. 동일 버전 문자열은 동일 계약을 보장하지 않는다.
 
-출력은 새 디렉터리여야 한다. 내려받기·크기·SHA256·버전·계약·실제 실행 중 하나라도 실패하면 종료 코드 1을 반환하고 출력 후보를 게시하지 않는다. 기존 출력은 덮어쓰지 않는다. 먼저 받아 둔 **공식 자산만** 사용할 때는 `--source-dir /path/to/official-assets`를 추가한다. 이 모드에도 동일한 해시·실행 검사가 적용된다. 소스 디렉터리의 다른 파일은 복사하지 않는다.
+DART의 Bun 1.4.3 `buildStandalone.mjs` 산출물과 `acceptanceBundle.mjs generate`, `generateAgentBundle` 산출물에서 Linux/Windows CLI, manifest, reference, catalog와 bundle을 구성했다. 후보 ZIP은 7개 파일의 크기와 SHA256을 lock에 고정한다. 설치는 이 ZIP을 풀고 내부 manifest·번들·플랫폼·계약·실제 실행 CLI와 catalog를 검증한 다음 교체한다. `installation.json`과 배포 정보의 upstream은 `development-candidate`와 소스 커밋을 표시하고 릴리스로 주장하지 않는다. 해시는 동일성 검사이며 게시자 인증이 아니다.
 
-`release/dart-2.1.0.lock.json`은 신뢰 기준이다. 공식 Release API의 자산 ID·공개 이름·bytes·SHA256과 agent manifest의 version/protocol/contract를 고정했다. 해시는 손상 검출 수단이며 배포처 인증을 대신하지 않는다. `--lock`은 명시적으로 검토한 다른 신뢰 파일이나 테스트 fixture를 사용할 때만 지정한다. 공급자가 같은 태그의 파일을 교체하면 기존 lock으로 성공하지 않으며, 변경 검토·해시 재확인·Linux 실행·별도 업무 인수 후 명시적으로 갱신해야 한다. `latest`로 자동 이동하지 않는다.
-
-## 출력과 배포 정보
-
-준비 디렉터리에는 다음 8개 파일이 포함된다. 이 중 공식 7개 파일을 통합 ZIP으로 만들어 저장소에 포함한다. 생성된 배포 정보는 설치 시 다시 생성하므로 ZIP에 포함하지 않는다.
+후보는 공개 Release API에서 다운로드하지 않는다. 별도 준비된 같은 파일을 검증하려면 다음 명령을 사용한다. 기존 출력은 덮어쓰지 않는다.
 
 ```bash
-uv run --no-project python tools/package_release.py --source-dir /tmp/dart-agent-release-0.1.0 --output /tmp/dart-agent-release-assets.zip
-# 검토 후 기존 release/dart-agent-release-assets.zip을 새 ZIP으로 교체한다.
+uv run --no-project python tools/prepare_release.py --source-dir /path/to/candidate-assets --output /tmp/dart-agent-candidate
+uv run --no-project python tools/package_release.py --source-dir /tmp/dart-agent-candidate --output /tmp/dart-agent-candidate.zip
 ```
 
-패키징 도구는 각 파일의 고정 크기와 SHA256을 검증하며 기존 ZIP을 덮어쓰지 않는다.
+공개 릴리스 다운로드를 별도로 재현할 때는 명시적으로 `--lock release/dart-2.1.0-release.lock.json`을 선택한다. 과거 공개 릴리스와 현재 스킬/앱의 호환성을 뜻하지 않는다. 후보 생성이나 오프라인 확인만으로 설치된 앱·회사 Linux·회사 네트워크 인수를 주장하지 않는다. 개인 연결 정보는 자산과 증거에 포함하지 않는다.
 
-| 파일 | 내용 |
-| --- | --- |
-| `dart-cli-linux-x64` | 공식 Linux x64/glibc 실행 파일 |
-| `dart-cli-windows-x64.exe` | 공식 Windows x64 실행 파일 |
-| `dart-cli-manifest.json` | CLI target·해시·공개 계약 |
-| `dart-agent-manifest.json` | 공식 6개 다운로드의 크기·해시·공개 계약 |
-| `dart-cli-command-catalog.json` | 공식 기계 판독 명령 계약 |
-| `dart-cli-reference.md` | 공식 명령 참조 |
-| `dart-agent-bundle.zip` | 가이드·예제·참조·파일별 manifest |
-| `dart-agent-distribution.json` | 이 저장소의 설치 도구가 사용할 버전·플랫폼·해시·Linux 검증 결과 |
-
-배포 정보 `schemaVersion: 1`은 `skillVersion: 0.1.0`과 `dartVersion: 2.1.0`을 별도 필드로 제공한다. `protocolVersion: 2`, `contract`의 format/fingerprint, `upstream`의 repository/tag, `platforms`의 `linux-x64`/`windows-x64`별 공개 `file`·os·cpu·libc, `assets`의 7개 공식 파일별 bytes/SHA256를 제공한다. 설치 도구는 호환 버전·플랫폼을 먼저 확인하고 고정된 Release 태그의 해당 파일을 검증해야 한다. 스킬 버전 변경이 DART 버전 자동 변경을 의미하지 않는다. 출력의 `verification`은 실제 Linux 실행 결과와 Windows의 무결성 검사 한계를 구분한다.
-
-실제 Release 이름은 agent manifest의 `downloads[].file`을 따른다. 현재 CLI manifest의 `artifacts[].file`에는 `dart-linux-x64` 등 과거 이름이 남아 있으므로, os/cpu/libc와 동일 bytes/SHA256로 공개 다운로드를 연결한다. 오래된 문서의 이름으로 다운로드하지 않는다. 내부 ZIP은 정확한 파일 목록·파일별 해시·identity·standalone manifest를 검사하고, bundled Reference/catalog가 외부 공개 파일과 같은지 확인한다. transport와 명령 registry는 공식 CLI를 그대로 소비한다.
-
-준비 디렉터리는 검증된 공식 파일과 생성한 배포 정보만 포함한다. 개인 연결 번들·토큰·profile·회사 Dataset·회사 소스는 입력받거나 복사하지 않는다. 공식 번들에는 upstream이 공개한 `investigation-example/synthetic-values.sqlite`와 합성 예제 소스가 들어 있다. Git에는 검증된 통합 ZIP만 포함한다.
+2026-11-05 WSL에서 준비 도구는 최종 Linux 실행 파일의 version, contract identity 및 전체 export와 catalog 일치를 확인했다. Windows에서는 같은 후보의 exe version과 identity를 별도 확인했다. 사용자가 설치된 Linux 후보 CLI로 PIN 페어링을 완료한 후 `app inspect`는 개발 앱의 connected-main identity와 같은 fingerprint를 확인했다. 회사 환경과 설치된 Windows 앱은 검증하지 않았다. 새 Cline 대화에서 설치 스킬의 PIN 지침이 로드됐고 사용자의 대화형 PIN 입력과 Main 확인을 안내했다. 참조 파일을 찾기 위한 전체 파일 시스템 검색이 관측되어 빠른 경로 선택은 보장되지 않는다. 전역 skills 안의 같은 이름을 가진 기존 백업은 `~/.cline/skill-backups/`로 보존해 중복 발견을 막았다.
 
 ## 검증 기록 — 2026-11-03
 

@@ -53,6 +53,8 @@ def run_cli(executable, args):
 
 def prepare(lock_path, source, output):
     lock = load(lock_path)
+    require(source is not None or lock['upstream'].get('kind') != 'development-candidate',
+            'development candidate requires local assets; it is not a published release')
     require(lock['schemaVersion'] == 1, 'unsupported distribution schema')
     require(lock['dartVersion'] == '2.1.0' and lock['protocolVersion'] == 2, 'incompatible pinned DART version/protocol')
     require(lock['contract']['formatVersion'] == 2 and

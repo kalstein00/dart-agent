@@ -109,6 +109,31 @@ class InstallTests(unittest.TestCase):
             self.assertEqual((profiles / 'personal.json').read_text(), 'private-profile-marker')
             self.assertFalse(any('private-profile-marker' in p.read_text(errors='ignore') for p in installed.rglob('*') if p.is_file()))
 
+    @unittest.skipIf(os.name == 'nt', 'fixture uses a Linux shell executable')
+    def test_candidate_install_records_source_commit_without_claiming_release(self):
+        import json
+        import shutil
+        from test_prepare_release import PreparationTests
+        fixture = PreparationTests()
+        fixture.setUp()
+        self.addCleanup(fixture.doCleanups)
+        clone = fixture.base / 'clone'
+        (clone / 'release').mkdir(parents=True)
+        shutil.copytree(ROOT / 'tools', clone / 'tools')
+        shutil.copytree(ROOT / 'skills', clone / 'skills')
+        lock = json.loads(fixture.lock.read_text())
+        lock['upstream'] = {'repository': 'kalstein00/DART', 'kind': 'development-candidate', 'commit': '1' * 40}
+        (clone / 'release/dart-2.1.0.lock.json').write_text(json.dumps(lock))
+        skills = fixture.base / 'skills'
+        result = subprocess.run(['uv', 'run', '--no-project', 'python', str(clone / 'tools/install.py'),
+                                 '--skills-dir', str(skills), '--prepared-dir', str(fixture.source)],
+                                capture_output=True, text=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        installed = json.loads((skills / 'dart-control/installation.json').read_text())
+        self.assertEqual(installed['upstream']['kind'], 'development-candidate')
+        self.assertEqual(installed['upstream']['commit'], '1' * 40)
+        self.assertNotIn('release', installed)
+
     def test_update_rejects_skill_version_mismatched_with_release_lock(self):
         import json
         import shutil

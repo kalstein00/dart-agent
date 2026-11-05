@@ -86,6 +86,17 @@ class PreparationTests(unittest.TestCase):
         self.assertEqual(set(p.name for p in self.output.iterdir()),
                          {p.name for p in self.source.iterdir()} | {'dart-agent-distribution.json'})
 
+    def test_development_candidate_requires_local_assets(self):
+        lock = json.loads(self.lock.read_text())
+        lock['upstream'] = {'repository': 'kalstein00/DART', 'kind': 'development-candidate', 'commit': '1' * 40}
+        self.lock.write_text(json.dumps(lock))
+        result = subprocess.run(['uv', 'run', '--no-project', 'python', str(TOOL),
+                                 '--lock', str(self.lock), '--output', str(self.output)],
+                                capture_output=True, text=True)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn('development candidate requires local assets', result.stderr)
+        self.assertFalse(self.output.exists())
+
     def test_checksum_mismatch_never_publishes_candidate(self):
         path = self.source / 'dart-cli-reference.md'
         path.write_bytes(b'x' * path.stat().st_size)

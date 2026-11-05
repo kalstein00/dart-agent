@@ -53,10 +53,13 @@ def install(skills_dir, prepared_dir=None, update=False, asset_dir=None, asset_z
                      candidate / 'bin' / ('dart.exe' if windows else 'dart'))
         for name in ('dart-cli-reference.md', 'dart-cli-command-catalog.json', 'dart-agent-distribution.json'):
             shutil.copy2(assets / name, candidate / 'references' / name)
-        (candidate / 'installation.json').write_text(json.dumps(dict(
+        installation = dict(
             skillVersion=lock['skillVersion'], dartVersion=lock['dartVersion'],
             source='local-release-assets' if asset_dir or local_zip else ('development-prepared-assets' if prepared_dir else 'bundled-archive'),
-            release='kalstein00/dart-agent@v' + lock['skillVersion'])) + '\n')
+            upstream=lock['upstream'])
+        if lock['upstream'].get('kind') != 'development-candidate':
+            installation['release'] = 'kalstein00/dart-agent@v' + lock['skillVersion']
+        (candidate / 'installation.json').write_text(json.dumps(installation) + '\n')
         # Personal profiles remain at the official CLI location, outside the
         # managed skill. Roll back a failed replacement.
         backup = work / 'previous'
