@@ -12,7 +12,7 @@ cd dart-agent
 uv run --no-project python tools/install.py
 ```
 
-설치 도구는 저장소에 포함된 `release/dart-agent-release-assets.zip`의 개발 후보 파일 7개를 고정 크기·SHA256·계약으로 검증한다. 이 후보는 공개 DART Release가 아니며 소스 커밋은 lock에 기록한다. 설치 시 다운로드나 GitHub 인증은 필요하지 않다. 설치 직전 현재 OS 실행 파일의 실제 version/contract identity/export도 확인한다. 검증 실패 시 기존 스킬은 보존된다.
+설치 도구는 저장소에 포함된 `release/dart-agent-release-assets.zip`의 개발 후보 파일 10개를 고정 크기·SHA256·계약으로 검증한다. 이 후보는 공개 DART Release가 아니며 소스 커밋은 lock에 기록한다. 설치 시 다운로드나 GitHub 인증은 필요하지 않다. 설치 직전 현재 OS 실행 파일의 실제 version, 기존 identity/export와 버전된 identity/export도 확인한다. 검증 실패 시 기존 스킬은 보존된다.
 
 별도로 준비한 ZIP을 사용할 경우 아래처럼 경로를 지정할 수 있다.
 
@@ -22,7 +22,7 @@ uv run --no-project python tools/install.py --asset-zip /path/to/dart-agent-rele
 
 로컬 파일도 동일한 lock과 실제 실행 검증을 거치며 설치 출처는 `local-release-assets`로 기록된다. 업데이트에는 `--update`를 추가한다.
 
-체크아웃의 `skills/dart-control/compatibility.json`은 스킬 버전과 지원하는 DART/protocol을 고정한다. 설치 전에 이 값과 checkout의 release lock이 일치해야 한다. 소스와 호환되는 버전을 명시적으로 checkout한 뒤 설치하며, 불일치하면 자동으로 다른 버전을 찾지 않는다.
+체크아웃의 `skills/dart-control/compatibility.json`은 스킬 버전과 지원하는 DART/protocol과 contractVersion을 고정한다. 설치 전에 이 값과 checkout의 release lock이 일치해야 한다. 소스와 호환되는 버전을 명시적으로 checkout한 뒤 설치하며, 불일치하면 자동으로 다른 버전을 찾지 않는다.
 
 설치 위치는 Cline 전역 `~/.cline/skills/dart-control`이다. 실행 파일은 Linux에서 `bin/dart`, Windows에서 `bin/dart.exe`이며 공개 명령 참조는 `references/`에 있다. `--skills-dir`은 별도 Cline 구성의 전역 skills 디렉터리 지정에만 사용한다. 일반 업데이트는 저장소를 명시적으로 갱신한 뒤 아래 명령을 실행한다. 공식 개인 연결 프로필 `~/.dart/connections` 또는 `DART_CLI_PROFILE_DIR`은 설치 경로 밖에 유지한다. 스킬 디렉터리에 개인 파일을 저장하지 않는다.
 
@@ -36,6 +36,12 @@ uv run --no-project python tools/install.py --update
 uv run --no-project python tools/install.py --prepared-dir /private/development-prepared-assets
 ```
 
+## 계약 인수 기준
+
+현재 개발 후보는 contractVersion 1.0.0과 fingerprint `478f2c998b51f7b6f3f7dd0d0670ed8583cf64561ecaafd23946875d5b79fd53`을 고정한다. 설치 전 자산과 실제 CLI의 버전된 export를 검증하고, 연결할 때 실제 CLI와 연결 Main을 각각 배포 기준에 비교한다. 릴리스·protocol·format·contractVersion·fingerprint가 모두 정확히 일치해야 새 업무를 시작한다. 동일 major나 additive 분류는 자동 허용이 아니다. 조회 실패·누락·버전 없는 응답은 unknown으로 처리하고 업무를 중단한다. 기존 legacy 기준을 새 버전으로 추정하거나 기준을 자동 갱신하지 않는다. 기존 Task의 조회·복구 규칙은 유지한다.
+
+이 기준은 개발 후보에 대한 명시적 소비자 기준이며 정식 DART 발행이나 회사 환경 인수가 아니다. 후보 source commit/tree는 선언된 출처이고 해당 커밋으로부터 설치본의 바이트 재현을 입증하지 않는다.
+
 ## Windows 담당자와 PIN 페어링
 
 1. Windows DART를 실행하고 Settings > **Remote Access**에서 Linux가 접근할 수 있는 **Network adapter**를 선택해 접근을 활성화한다.
@@ -45,7 +51,7 @@ uv run --no-project python tools/install.py --prepared-dir /private/development-
 ~/.cline/skills/dart-control/bin/dart connection pair --endpoint HTTPS_URL --profile PROFILE
 ```
 
-3. 앱에 표시되는 6자리 PIN을 터미널에 직접 입력한다. PIN, 프로필 및 토큰은 비공개로 유지하며 채팅이나 기록에 넣지 않는다. 비대화형 에이전트는 이 단계를 사용자에게 맡긴다. 이후 `dart app inspect --profile PROFILE`로 연결된 Main을 확인한다. 주소가 바뀌면 새 이름의 프로필로 다시 페어링한다. 기존 프로필을 자동 교체하지 않는다.
+3. 앱에 표시되는 6자리 PIN을 터미널에 직접 입력한다. PIN, 프로필 및 토큰은 비공개로 유지하며 채팅이나 기록에 넣지 않는다. 비대화형 에이전트는 이 단계를 사용자에게 맡긴다. 이후 `dart app inspect --profile PROFILE`로 앱 ID를 확인하고, `dart app inspect versioned --profile PROFILE --app APP_ID`로 연결된 Main의 계약을 독립적으로 확인한다. 주소가 바뀌면 새 이름의 프로필로 다시 페어링한다. 기존 프로필을 자동 교체하지 않는다.
 
 앱이 지원하는 기존 bundle 등록은 명시적으로 선택한 경우 stdin으로 사용할 수 있다. 기존 인증서 신뢰를 자동 변경하지 않는다.
 
@@ -57,7 +63,7 @@ Cline을 다시 시작한 후 실제 업무 요청으로 스킬 호출을 확인
 
 Cline은 설치된 `references/connection.md`에 따라 공식 CLI로 등록·상태 조회·양쪽 버전/계약 비교·창 목록 조회·세션 생성 및 재확인을 수행한다. 새 등록은 대화형 PIN 페어링으로 수행한다. 현재 요청에서 지정한 창이 이전 선택보다 우선한다. 지정이 없으면 유효한 이전 선택을 재사용하고, 이전 선택이 없을 때 단일 창을 선택한다. 현재 지정 없이 이전 창이 사라졌다면 남은 창이 하나여도 대체 대상을 사용자에게 확인한다. 여러 창에서 대상을 구분할 수 없으면 공개 창 ID와 역할을 제시하고 선택을 요청한다. 이후 업무에서는 명시적인 appId/windowId/sessionId를 재확인해서 재사용하며 GUI 포커스로 대상을 바꾸지 않는다. 세션이 유효하지 않으면 앱과 창을 다시 확인해 사용자의 의도에 맞게 세션을 재선택한다. 의도가 모호하면 사용자에게 확인한다. 재시작 후 이전 ID를 그대로 사용하지 않는다.
 
-접속 거부/시간 초과는 Windows 앱·Remote Access·발급 endpoint·방화벽과 Linux 경로를 확인한다. 페어링이 만료되거나 실패하면 앱에서 새 페어링을 시작한다. 프로필을 읽지 못하면 Linux 프로필 이름/위치를 확인한다. 인증서 변경은 Windows 담당자에게 대상을 확인한 뒤 명시적으로 trust를 갱신한다. 버전/protocol/fingerprint 불일치는 호환 조합을 설치하기 전 업무를 중단한다. 실패의 공식 code/phase/nextAction을 비밀 없이 보고한다.
+접속 거부/시간 초과는 Windows 앱·Remote Access·발급 endpoint·방화벽과 Linux 경로를 확인한다. 페어링이 만료되거나 실패하면 앱에서 새 페어링을 시작한다. 프로필을 읽지 못하면 Linux 프로필 이름/위치를 확인한다. 인증서 변경은 Windows 담당자에게 대상을 확인한 뒤 명시적으로 trust를 갱신한다. 버전/protocol/contractVersion/fingerprint 불일치나 누락은 호환 조합을 설치하기 전 업무를 중단한다. 실패의 공식 code/phase/nextAction을 비밀 없이 보고한다.
 
 ## 인수 증거
 

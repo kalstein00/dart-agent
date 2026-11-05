@@ -22,6 +22,8 @@ def install(skills_dir, prepared_dir=None, update=False, asset_dir=None, asset_z
     require(compatibility['skillVersion'] == lock['skillVersion'], 'incompatible skill version')
     require(compatibility['dartVersion'] == lock['dartVersion'] and
             compatibility['protocolVersion'] == lock['protocolVersion'], 'incompatible skill DART version/protocol')
+    require(compatibility.get('contractVersion') == lock.get('versionedContract', {}).get('contractVersion'),
+            'incompatible skill contract version')
     target = skills_dir / 'dart-control'
     require(not target.exists() or update, 'already installed; use --update explicitly')
     skills_dir.mkdir(parents=True, exist_ok=True)
@@ -53,6 +55,9 @@ def install(skills_dir, prepared_dir=None, update=False, asset_dir=None, asset_z
                      candidate / 'bin' / ('dart.exe' if windows else 'dart'))
         for name in ('dart-cli-reference.md', 'dart-cli-command-catalog.json', 'dart-agent-distribution.json'):
             shutil.copy2(assets / name, candidate / 'references' / name)
+        if 'versionedContract' in lock:
+            for name in ('dart-cli-reference.v2.md', 'dart-cli-command-catalog.v2.json'):
+                shutil.copy2(assets / name, candidate / 'references' / name)
         installation = dict(
             skillVersion=lock['skillVersion'], dartVersion=lock['dartVersion'],
             source='local-release-assets' if asset_dir or local_zip else ('development-prepared-assets' if prepared_dir else 'bundled-archive'),

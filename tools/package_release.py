@@ -1,4 +1,4 @@
-"""Package the seven pinned Release assets into one ZIP."""
+"""Package the pinned Release assets into one ZIP."""
 import argparse
 from pathlib import Path
 import zipfile

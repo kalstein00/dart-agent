@@ -5,6 +5,7 @@ import json
 import os
 from pathlib import Path, PurePosixPath
 import platform
+import re
 import subprocess
 import sys
 import tempfile
@@ -43,6 +44,16 @@ def identity(document, lock):
     require(document['contract'] == lock['contract'], 'incompatible public contract')
 
 
+def versioned_identity(response, baseline):
+    require(response.get('ok') is True and response.get('protocolVersion') == baseline['protocolVersion'],
+            'versioned identity query failed')
+    data = response['data']
+    require(data['version'] == baseline['releaseVersion'], 'versioned identity release mismatch')
+    contract = data['contract']
+    for key in ('releaseVersion', 'protocolVersion', 'formatVersion', 'contractVersion', 'fingerprint'):
+        require(key in contract and contract[key] == baseline[key], 'versioned identity mismatch: ' + key)
+
+
 def run_cli(executable, args):
     result = subprocess.run([str(executable), *args], capture_output=True, text=True, encoding='utf-8', timeout=60, check=True)
     response = json.loads(result.stdout)
@@ -66,7 +77,21 @@ def prepare(lock_path, source, output):
             'preparation requires Linux or Windows x64 to execute the final CLI')
     platform_key = system.lower() + '-x64'
     records = {safe_name(a['file']): a for a in lock['assets']}
-    require(len(records) == len(lock['assets']) == 7, 'expected exactly seven unique upstream assets')
+    versioned = lock.get('versionedContract')
+    count = 10 if versioned else 7
+    require(len(records) == len(lock['assets']) == count, 'unexpected upstream asset inventory')
+    if versioned:
+        require(set(versioned) == {'releaseVersion', 'protocolVersion', 'formatVersion', 'contractVersion', 'fingerprint'},
+                'invalid versioned baseline')
+        require(versioned['releaseVersion'] == lock['dartVersion'] and
+                versioned['protocolVersion'] == lock['protocolVersion'] and
+                versioned['formatVersion'] == lock['contract']['formatVersion'] and
+                versioned['fingerprint'] == lock['contract']['fingerprint'] and
+                isinstance(versioned['contractVersion'], str) and
+                re.fullmatch(r'(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)', versioned['contractVersion']),
+                'incompatible versioned baseline')
+        require({'dart-agent-manifest.v2.json', 'dart-cli-command-catalog.v2.json',
+                 'dart-cli-reference.v2.md'} <= records.keys(), 'missing versioned assets')
     required = {'dart-agent-manifest.json', 'dart-cli-manifest.json', 'dart-agent-bundle.zip',
                 'dart-cli-reference.md', 'dart-cli-command-catalog.json'}
     require(required <= records.keys(), 'missing required manifest/reference assets')
@@ -90,7 +115,7 @@ def prepare(lock_path, source, output):
         require(agent['agentBundleVersion'] == 1, 'incompatible agent bundle version')
         downloads = {safe_name(a['file']): a for a in agent['downloads']}
         require(len(downloads) == len(agent['downloads']) == 6 and
-                set(downloads) == set(records) - {'dart-agent-manifest.json'}, 'unexpected download inventory')
+                set(downloads) == set(records) - {'dart-agent-manifest.json', 'dart-agent-manifest.v2.json', 'dart-cli-command-catalog.v2.json', 'dart-cli-reference.v2.md'}, 'unexpected download inventory')
         for name, record in downloads.items():
             verify((stage / name).read_bytes(), record)
         cli = load(stage / 'dart-cli-manifest.json')
@@ -132,6 +157,19 @@ def prepare(lock_path, source, output):
             require(archive.read('Reference.md') == (stage / 'dart-cli-reference.md').read_bytes() and
                     archive.read('catalog.json') == (stage / 'dart-cli-command-catalog.json').read_bytes(),
                     'bundled public reference/catalog mismatch')
+        if versioned:
+            manifest_v2 = load(stage / 'dart-agent-manifest.v2.json')
+            require(manifest_v2['manifestVersion'] == 2 and manifest_v2['status'] == 'candidate' and
+                    manifest_v2['contract'] == versioned and
+                    manifest_v2['candidateId'] == lock['candidateId'] and
+                    manifest_v2['source'] == lock['candidateSource'],
+                    'versioned candidate identity mismatch')
+            verify((stage / 'dart-agent-manifest.json').read_bytes(), manifest_v2['legacy'])
+            versioned_catalog = load(stage / 'dart-cli-command-catalog.v2.json')
+            require(versioned_catalog['contractVersion'] == versioned['contractVersion'] and
+                    {k: versioned_catalog[k] for k in ('releaseVersion', 'protocolVersion', 'formatVersion', 'fingerprint')} ==
+                    {k: versioned[k] for k in ('releaseVersion', 'protocolVersion', 'formatVersion', 'fingerprint')},
+                    'versioned catalog identity mismatch')
         executable = stage / platforms[platform_key]['file']
         if system == 'Linux':
             executable.chmod(0o755)
@@ -146,6 +184,11 @@ def prepare(lock_path, source, output):
                 'executing CLI public identity mismatch')
         exported = run_cli(executable, ['contract', 'export', 'full'])
         require(exported['data'] == catalog, 'executing CLI public contract differs from catalog')
+        if versioned:
+            observed_v2 = run_cli(executable, ['contract', 'identity', 'versioned'])
+            versioned_identity(observed_v2, versioned)
+            exported_v2 = run_cli(executable, ['contract', 'export', 'versioned'])
+            require(exported_v2['data'] == versioned_catalog, 'versioned CLI export differs from catalog')
         # Keep private host paths out of published preparation evidence.
         observed['data'].pop('executablePath', None)
         observed['data'].pop('entryPath', None)
@@ -157,6 +200,13 @@ def prepare(lock_path, source, output):
                                                                version=version, identity=observed, catalogMatches=True),
                                           ('windows' if system == 'Linux' else 'linux'):
                                               'integrity-only; native execution not performed'})
+        if versioned:
+            distribution['versionedContract'] = versioned
+            distribution['candidateId'] = lock['candidateId']
+            distribution['candidateSource'] = lock['candidateSource']
+            observed_v2['data'].pop('executablePath', None)
+            observed_v2['data'].pop('entryPath', None)
+            distribution['verification'][system.lower()]['versionedIdentity'] = observed_v2
         (stage / 'dart-agent-distribution.json').write_text(json.dumps(distribution, indent=2) + '\n', encoding='utf-8')
         # Publish only after every check succeeds; a failed run leaves no usable candidate.
         os.rename(stage, output)

@@ -91,6 +91,9 @@ class InstallTests(unittest.TestCase):
         (clone / 'release').mkdir(parents=True)
         shutil.copytree(ROOT / 'tools', clone / 'tools')
         shutil.copytree(ROOT / 'skills', clone / 'skills')
+        # This fixture exercises the legacy, unversioned distribution.
+        compatibility = clone / 'skills/dart-control/compatibility.json'
+        compatibility.write_text('{"skillVersion":"0.1.0","dartVersion":"2.1.0","protocolVersion":2}\n')
         shutil.copy2(fixture.lock, clone / 'release/dart-2.1.0.lock.json')
         home = fixture.base / 'home'
         profiles = home / '.dart/connections'
@@ -121,6 +124,9 @@ class InstallTests(unittest.TestCase):
         (clone / 'release').mkdir(parents=True)
         shutil.copytree(ROOT / 'tools', clone / 'tools')
         shutil.copytree(ROOT / 'skills', clone / 'skills')
+        # This fixture exercises the legacy, unversioned distribution.
+        compatibility = clone / 'skills/dart-control/compatibility.json'
+        compatibility.write_text('{"skillVersion":"0.1.0","dartVersion":"2.1.0","protocolVersion":2}\n')
         lock = json.loads(fixture.lock.read_text())
         lock['upstream'] = {'repository': 'kalstein00/DART', 'kind': 'development-candidate', 'commit': '1' * 40}
         (clone / 'release/dart-2.1.0.lock.json').write_text(json.dumps(lock))
@@ -145,6 +151,9 @@ class InstallTests(unittest.TestCase):
         (clone / 'release').mkdir(parents=True)
         shutil.copytree(ROOT / 'tools', clone / 'tools')
         shutil.copytree(ROOT / 'skills', clone / 'skills')
+        # This fixture exercises the legacy, unversioned distribution.
+        compatibility = clone / 'skills/dart-control/compatibility.json'
+        compatibility.write_text('{"skillVersion":"0.1.0","dartVersion":"2.1.0","protocolVersion":2}\n')
         lock = json.loads(fixture.lock.read_text())
         lock['skillVersion'] = '9.9.9'
         (clone / 'release/dart-2.1.0.lock.json').write_text(json.dumps(lock))
@@ -168,6 +177,9 @@ class InstallTests(unittest.TestCase):
         (clone / 'release').mkdir(parents=True)
         shutil.copytree(ROOT / 'tools', clone / 'tools')
         shutil.copytree(ROOT / 'skills', clone / 'skills')
+        # This fixture exercises the legacy, unversioned distribution.
+        compatibility = clone / 'skills/dart-control/compatibility.json'
+        compatibility.write_text('{"skillVersion":"0.1.0","dartVersion":"2.1.0","protocolVersion":2}\n')
         shutil.copy2(fixture.lock, clone / 'release/dart-2.1.0.lock.json')
         home = fixture.base / 'home'
         target = home / '.cline/skills/dart-control'

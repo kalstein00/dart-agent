@@ -1,8 +1,18 @@
+# 계약 버전 후보 갱신 (2026-11-05)
+
+현재 기본 lock과 번들 ZIP은 DART의 versioned 후보 `f1772a805e1cd718ee551367f36f839650bd968f634297836bc875ff97f08022`을 고정한다. 선언된 source commit은 `470a85a8d0d26266c8bdb652d06877df6ad45609`, tree는 `31a7a2120511dee404b045784e42ed53fce23270`이다. contractVersion은 `1.0.0`, fingerprint는 `478f2c998b51f7b6f3f7dd0d0670ed8583cf64561ecaafd23946875d5b79fd53`다. 이는 개발 후보이며 정식 Release가 아니다. 후보 파일 hash는 고정했지만 commit에서 해당 바이너리의 재현 가능성은 입증하지 않았다.
+
+준비 도구는 기존 7개 자산과 별도로 versioned agent manifest, catalog, Reference의 고정 크기·hash를 검증한다. manifest의 후보와 legacy 결합, catalog와 실제 실행 CLI의 versioned identity/export를 확인한다. 배포된 기준과 실행 CLI, 연결 Main의 버전과 전체 fingerprint가 서로 일치해야 새 업무를 실행한다. Main은 CLI로 대체하지 않는다. 이전 무버전 자료에 버전을 부여하지 않으며 회사 환경과 정식 발행은 별도 인수다.
+
+2026-11-05 WSL Ubuntu에서 저장소 ZIP으로 전역 `~/.cline/skills/dart-control`을 명시적으로 업데이트했다. 설치된 Linux CLI의 versioned identity와 기존 페어링 프로필로 연결한 Windows 개발 Main의 `app inspect versioned`가 각각 위 기준과 정확히 일치했고 Main 관측 출처는 `connected-main`이었다. 잘못된 contractVersion 기준과 누락된 identity를 거절하는 검사도 통과했다. 이 연결은 개발 앱 증거이며 Windows 설치 앱과 회사 환경 인수는 아니다.
+
+이하 이전 기록은 당시 후보의 이력이다.
+
 # DART CLI 자산 준비
 
 ## 현재 개발 후보 — 2026-11-05
 
-기본 lock `release/dart-2.1.0.lock.json`과 저장소 ZIP은 DART 소스 커밋 `14a85e60d8ce69098bfba04e708abf409d5d2ff8`의 개발 후보이며 공개 릴리스가 아니다. 해당 후보의 계약 fingerprint는 `4f523920d4db114df90df3e46ea828de0d08bc7a52514d8d36b2035ad09418d5`다. 공개 `v2.1.0`의 원래 lock은 `release/dart-2.1.0-release.lock.json`에 보존한다. 동일 버전 문자열은 동일 계약을 보장하지 않는다.
+이전 기본 lock과 ZIP은 DART 소스 커밋 `14a85e60d8ce69098bfba04e708abf409d5d2ff8`의 개발 후보였으며 공개 릴리스가 아니었다. 해당 후보의 계약 fingerprint는 `4f523920d4db114df90df3e46ea828de0d08bc7a52514d8d36b2035ad09418d5`다. 공개 `v2.1.0`의 원래 lock은 `release/dart-2.1.0-release.lock.json`에 보존한다. 동일 버전 문자열은 동일 계약을 보장하지 않는다.
 
 DART의 Bun 1.4.3 `buildStandalone.mjs` 산출물과 `acceptanceBundle.mjs generate`, `generateAgentBundle` 산출물에서 Linux/Windows CLI, manifest, reference, catalog와 bundle을 구성했다. 후보 ZIP은 7개 파일의 크기와 SHA256을 lock에 고정한다. 설치는 이 ZIP을 풀고 내부 manifest·번들·플랫폼·계약·실제 실행 CLI와 catalog를 검증한 다음 교체한다. `installation.json`과 배포 정보의 upstream은 `development-candidate`와 소스 커밋을 표시하고 릴리스로 주장하지 않는다. 해시는 동일성 검사이며 게시자 인증이 아니다.
 
