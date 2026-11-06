@@ -10,4 +10,4 @@ Linux Cline 전역 설치와 Windows Remote Access의 PIN 페어링 및 단일 �
 uv run --no-project python tools/install.py
 ```
 
-설치 도구는 저장소 ZIP과 고정 해시·계약을 검증한다. 기존 설치를 교체하려면 `--update`를 명시한다. 개발 후보 검증은 공개 Release 인수를 대신하지 않는다.
+설치 도구는 저장소 ZIP과 고정 해시·계약을 검증한다. 기존 설치가 있으면 같은 명령으로 갱신한다. 개발 후보 검증은 공개 Release 인수를 대신하지 않는다.

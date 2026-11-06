@@ -4,7 +4,7 @@
 
 ## 배포 및 재현
 
-유지보수 담당자는 [Release 준비](../release-preparation.md)의 명령으로 공식 7개 첨부물과 배포 정보를 준비하고 고정 태그 `v0.1.0`에 개별 파일을 게시했다. 준비 결과는 별도 통합 ZIP이 아니며, 공식 bundle ZIP은 upstream 원본이다. 공개 인수는 새 clone에서 `uv run --no-project python tools/install.py`를 실행하고 다른 작업 디렉터리에서 실제 Cline이 전역 스킬을 호출하는지 확인한다. 이후 같은 clone에서 `--update`를 명시하고 같은 프로필·대상·Dataset의 공개 동작을 다시 확인한다. 실패 사례는 기존 스킬과 프로필을 보존하는지도 확인한다. Release 접근 오류와 준비 자산 사용을 구분한다.
+유지보수 담당자는 [Release 준비](../release-preparation.md)의 명령으로 공식 7개 첨부물과 배포 정보를 준비하고 고정 태그 `v0.1.0`에 개별 파일을 게시했다. 준비 결과는 별도 통합 ZIP이 아니며, 공식 bundle ZIP은 upstream 원본이다. 공개 인수는 새 clone에서 `uv run --no-project python tools/install.py`를 실행하고 다른 작업 디렉터리에서 실제 Cline이 전역 스킬을 호출하는지 확인한다. 이후 같은 clone에서 동일한 설치 명령을 다시 실행하고 같은 프로필·대상·Dataset의 공개 동작을 다시 확인한다. 실패 사례는 기존 스킬과 프로필을 보존하는지도 확인한다. Release 접근 오류와 준비 자산 사용을 구분한다.
 
 Windows 앱 준비, 일회용 연결 번들, 소스 루트 및 문제 해결은 [사용자 설치 안내](../installation.md)를 따른다. 연결 비밀은 증거에 포함하지 않는다. [Dataset](issue-5.md), [소스 조사](issue-6.md), [SQL·분석](issue-7.md)은 실제 Cline과 Windows에서 각각 수행한 합성 작업 및 한계를 기록한다. 이들은 하나의 최종 Release 설치 여정을 대신하지 않는다.
 

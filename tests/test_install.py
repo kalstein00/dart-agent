@@ -37,7 +37,7 @@ class InstallTests(unittest.TestCase):
             with zipfile.ZipFile(archive, 'w') as bundle:
                 bundle.writestr('../escape', 'bad')
             result = subprocess.run(['uv', 'run', '--no-project', 'python', str(ROOT / 'tools/install.py'),
-                                     '--skills-dir', str(target.parent), '--asset-zip', str(archive), '--update'],
+                                     '--skills-dir', str(target.parent), '--asset-zip', str(archive)],
                                     capture_output=True, text=True)
             self.assertNotEqual(result.returncode, 0)
             self.assertIn('unexpected release archive contents', result.stderr)
@@ -53,7 +53,8 @@ class InstallTests(unittest.TestCase):
             self.assertIn('installation failed', result.stderr)
             self.assertFalse((root / 'skills/dart-control').exists())
 
-    def test_update_is_explicit_and_preserves_existing_installation(self):
+    @unittest.skipUnless(platform.system() == 'Windows' and platform.machine().lower() in {'amd64', 'x86_64'}, 'requires Windows x64')
+    def test_existing_installation_is_updated_without_flag(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
             target = root / 'skills/dart-control'
@@ -61,9 +62,10 @@ class InstallTests(unittest.TestCase):
             (target / 'keep').write_text('existing installation')
             result = subprocess.run(['uv', 'run', '--no-project', 'python', str(ROOT / 'tools/install.py'), '--skills-dir', str(root / 'skills')],
                                     capture_output=True, text=True)
-            self.assertNotEqual(result.returncode, 0)
-            self.assertIn('use --update explicitly', result.stderr)
-            self.assertEqual((target / 'keep').read_text(), 'existing installation')
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertFalse((target / 'keep').exists())
+            self.assertTrue((target / 'SKILL.md').is_file())
+            self.assertTrue((target / 'bin/dart.exe').is_file())
 
     def test_corrupt_prepared_assets_leave_existing_skill_usable(self):
         with tempfile.TemporaryDirectory() as temporary:
@@ -75,7 +77,7 @@ class InstallTests(unittest.TestCase):
             source.mkdir()
             (source / 'dart-cli-linux-x64').write_text('untrusted executable')
             result = subprocess.run(['uv', 'run', '--no-project', 'python', str(ROOT / 'tools/install.py'), '--skills-dir', str(root / 'skills'),
-                                     '--asset-dir', str(source), '--update'], capture_output=True, text=True)
+                                     '--asset-dir', str(source)], capture_output=True, text=True)
             self.assertNotEqual(result.returncode, 0)
             self.assertEqual((target / 'keep').read_text(), 'existing installation')
 
@@ -101,8 +103,8 @@ class InstallTests(unittest.TestCase):
         (profiles / 'personal.json').write_text('private-profile-marker')
         command = ['uv', 'run', '--no-project', 'python', str(clone / 'tools/install.py'), '--prepared-dir', str(fixture.source)]
         env = {**os.environ, 'HOME': str(home)}
-        for arguments in ([], ['--update']):
-            result = subprocess.run(command + arguments, env=env, capture_output=True, text=True)
+        for _ in range(2):
+            result = subprocess.run(command, env=env, capture_output=True, text=True)
             self.assertEqual(result.returncode, 0, result.stderr)
             installed = home / '.cline/skills/dart-control'
             self.assertTrue((installed / 'SKILL.md').is_file())
@@ -161,7 +163,7 @@ class InstallTests(unittest.TestCase):
         target.mkdir(parents=True)
         (target / 'keep').write_text('existing installation')
         result = subprocess.run(['uv', 'run', '--no-project', 'python', str(clone / 'tools/install.py'),
-                                 '--skills-dir', str(target.parent), '--prepared-dir', str(fixture.source), '--update'],
+                                 '--skills-dir', str(target.parent), '--prepared-dir', str(fixture.source)],
                                 capture_output=True, text=True)
         self.assertNotEqual(result.returncode, 0, result.stdout)
         self.assertIn('incompatible skill version', result.stderr)
@@ -192,7 +194,7 @@ class InstallTests(unittest.TestCase):
         data = asset.read_bytes()
         asset.write_bytes(bytes([data[0] ^ 1]) + data[1:])
         result = subprocess.run(['uv', 'run', '--no-project', 'python', str(clone / 'tools/install.py'),
-                                 '--prepared-dir', str(fixture.source), '--update'],
+                                 '--prepared-dir', str(fixture.source)],
                                 env={**os.environ, 'HOME': str(home)}, capture_output=True, text=True)
         self.assertNotEqual(result.returncode, 0)
         self.assertIn('checksum mismatch', result.stderr)
@@ -208,7 +210,7 @@ class InstallTests(unittest.TestCase):
             profile = home / '.dart/connections/personal.json'
             profile.parent.mkdir(parents=True)
             profile.write_text('private-profile-marker')
-            result = subprocess.run(['uv', 'run', '--no-project', 'python', str(ROOT / 'tools/install.py'), '--update',
+            result = subprocess.run(['uv', 'run', '--no-project', 'python', str(ROOT / 'tools/install.py'),
                                      '--skills-dir', str(home / '.cline/skills'), '--asset-zip', str(home / 'missing.zip')],
                                     env={**os.environ, 'HOME': str(home)},
                                     capture_output=True, text=True)

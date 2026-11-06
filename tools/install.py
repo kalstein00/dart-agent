@@ -15,7 +15,7 @@ from prepare_release import DEFAULT_LOCK, load, prepare, require, safe_name
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def install(skills_dir, prepared_dir=None, update=False, asset_dir=None, asset_zip=None):
+def install(skills_dir, prepared_dir=None, asset_dir=None, asset_zip=None):
     local_zip = asset_zip is not None
     lock = load(DEFAULT_LOCK)
     compatibility = load(ROOT / 'skills/dart-control/compatibility.json')
@@ -25,7 +25,6 @@ def install(skills_dir, prepared_dir=None, update=False, asset_dir=None, asset_z
     require(compatibility.get('contractVersion') == lock.get('versionedContract', {}).get('contractVersion'),
             'incompatible skill contract version')
     target = skills_dir / 'dart-control'
-    require(not target.exists() or update, 'already installed; use --update explicitly')
     skills_dir.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix='.dart-install-', dir=skills_dir) as temporary:
         work = Path(temporary)
@@ -86,10 +85,9 @@ def main():
     sources.add_argument('--prepared-dir', type=Path, help='development only: verified preparation output, not Release proof')
     sources.add_argument('--asset-dir', type=Path, help='local directory containing pinned Release assets')
     sources.add_argument('--asset-zip', type=Path, help='local Release assets ZIP')
-    parser.add_argument('--update', action='store_true', help='explicitly replace managed skill files, preserving official profiles')
     args = parser.parse_args()
     try:
-        target = install(args.skills_dir.expanduser().absolute(), args.prepared_dir, args.update, args.asset_dir, args.asset_zip)
+        target = install(args.skills_dir.expanduser().absolute(), args.prepared_dir, args.asset_dir, args.asset_zip)
     except (OSError, ValueError, KeyError, TypeError, subprocess.SubprocessError, zipfile.BadZipFile) as error:
         print(f'installation failed: {error}', file=sys.stderr)
         return 1

@@ -20,14 +20,14 @@ uv run --no-project python tools/install.py
 uv run --no-project python tools/install.py --asset-zip /path/to/dart-agent-release-assets.zip
 ```
 
-로컬 파일도 동일한 lock과 실제 실행 검증을 거치며 설치 출처는 `local-release-assets`로 기록된다. 업데이트에는 `--update`를 추가한다.
+로컬 파일도 동일한 lock과 실제 실행 검증을 거치며 설치 출처는 `local-release-assets`로 기록된다. 기존 설치가 있으면 자동으로 갱신한다.
 
 체크아웃의 `skills/dart-control/compatibility.json`은 스킬 버전과 지원하는 DART/protocol과 contractVersion을 고정한다. 설치 전에 이 값과 checkout의 release lock이 일치해야 한다. 소스와 호환되는 버전을 명시적으로 checkout한 뒤 설치하며, 불일치하면 자동으로 다른 버전을 찾지 않는다.
 
 설치 위치는 Cline 전역 `~/.cline/skills/dart-control`이다. 실행 파일은 Linux에서 `bin/dart`, Windows에서 `bin/dart.exe`이며 공개 명령 참조는 `references/`에 있다. `--skills-dir`은 별도 Cline 구성의 전역 skills 디렉터리 지정에만 사용한다. 일반 업데이트는 저장소를 명시적으로 갱신한 뒤 아래 명령을 실행한다. 공식 개인 연결 프로필 `~/.dart/connections` 또는 `DART_CLI_PROFILE_DIR`은 설치 경로 밖에 유지한다. 스킬 디렉터리에 개인 파일을 저장하지 않는다.
 
 ```bash
-uv run --no-project python tools/install.py --update
+uv run --no-project python tools/install.py
 ```
 
 초기 개발에서는 #2 준비 도구 출력으로 아래처럼 설치할 수 있다. `installation.json`에 `development-prepared-assets`로 표시된다. 이 실행은 공개 Release 설치 성공의 증거가 아니다. 준비 자산도 매번 동일한 검증을 거친다.
