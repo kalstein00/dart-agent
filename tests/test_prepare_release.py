@@ -6,10 +6,14 @@ from pathlib import Path
 import subprocess
 import tempfile
 import unittest
+from unittest.mock import patch
 import zipfile
+import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 TOOL = ROOT / 'tools/prepare_release.py'
+sys.path.insert(0, str(ROOT / 'tools'))
+from prepare_release import run_cli
 CONTRACT = {'formatVersion': 2, 'fingerprint': {'algorithm': 'sha256', 'projectionVersion': 1, 'value': 'a' * 64}}
 
 
@@ -120,6 +124,22 @@ class PreparationTests(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0)
         self.assertIn('incompatible pinned DART version', result.stderr)
         self.assertFalse(self.output.exists())
+
+    def test_protocol_3_cannot_use_a_legacy_unversioned_lock(self):
+        lock = json.loads(self.lock.read_text())
+        lock.update(dartVersion='2.1.1', protocolVersion=3)
+        self.lock.write_text(json.dumps(lock))
+        result = self.run_tool()
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn('protocol 3 requires a versioned baseline', result.stderr)
+        self.assertFalse(self.output.exists())
+
+    def test_native_cli_protocol_2_response_cannot_satisfy_protocol_3(self):
+        response = dict(ok=True, protocolVersion=2, data=dict(version='2.1.1'))
+        with patch('prepare_release.subprocess.run', return_value=subprocess.CompletedProcess(
+                args=[], returncode=0, stdout=json.dumps(response))):
+            with self.assertRaisesRegex(ValueError, 'successful protocol 3 response'):
+                run_cli(Path('fixture-cli'), ['version'], 3)
 
     def test_verified_manifest_with_wrong_release_is_rejected(self):
         agent_path = self.source / 'dart-agent-manifest.json'

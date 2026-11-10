@@ -1,13 +1,13 @@
 ---
 name: dart-control
-description: Connect Cline to a running Windows DART application, select the intended window, and retain its explicit control session with the official DART 2.1.0 CLI.
+description: Connect Cline to a running Windows DART application, select the intended window, and retain its explicit control session with the official DART 2.1.1 CLI.
 ---
 
 # DART control
 
 Use this skill for DART 앱 connection, status, and control requests. Read `references/connection.md` before connecting. The installed official executable is `bin/dart` on Linux and `bin/dart.exe` on Windows, relative to this skill directory; resolve the absolute skill directory from this loaded file. In a default Linux Cline installation, check `~/.cline/skills/dart-control` first; if configured elsewhere, use the actual loaded skill directory. Run that executable directly, never a guessed PATH command. Do not start or discover a Windows app from Linux.
 
-The supported application and CLI are **2.1.0, protocol 2**; the independently pinned contract is **1.0.0**. Compare the executing CLI and connected Main independently against `references/dart-agent-distribution.json`; compare contractVersion and the full fingerprint as well as release, protocol and format. A failed or missing response is not compatibility proof. Do not run business commands on a mismatch.
+The supported application and CLI are **2.1.1, protocol 3**; the independently pinned contract is **2.0.0**. Compare the executing CLI and connected Main independently against `references/dart-agent-distribution.json`; compare contractVersion and the full fingerprint as well as release, protocol and format. A failed or missing response is not compatibility proof. Do not run business commands on a mismatch.
 
 Pair new remote connections using the interactive PIN workflow in `references/connection.md`. PINs, bundles and official profiles are private: keep them out of arguments, transcripts, repository files and evidence. Keep personal profiles outside this skill. Never auto-forget or replace trust after an error.
 

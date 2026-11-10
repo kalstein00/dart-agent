@@ -1,18 +1,18 @@
 # Cline 설치와 Windows DART 연결
 
-설치 도구는 Linux x64 glibc와 Windows x64에서 해당 OS의 현재 개발 후보의 CLI 2.1.0을 설치한다. DART 앱은 Windows 2.1.0, protocol 2다. Linux에서 연결할 때 WSL·공유 드라이브·특정 포트를 요구하지 않는다. 회사 Linux 배포판 및 회사 네트워크 검증은 별도로 필요하다.
+설치 도구는 Linux x64 glibc와 Windows x64에서 해당 OS의 공식 DART CLI 2.1.1을 설치한다. DART 앱은 Windows 2.1.1, protocol 3다. Linux에서 연결할 때 WSL·공유 드라이브·특정 포트를 요구하지 않는다. 회사 Linux 배포판 및 회사 네트워크 검증은 별도로 필요하다.
 
 ## clone 설치
 
 설치할 OS에 `git`, `uv`, Cline CLI를 준비한다. 설치에 `gh` 인증이 필요하지 않다.
 
 ```bash
-git clone https://github.com/kalstein00/dart-agent.git
+git clone --branch v0.2.0 https://github.com/kalstein00/dart-agent.git
 cd dart-agent
 uv run --no-project python tools/install.py
 ```
 
-설치 도구는 저장소에 포함된 `release/dart-agent-release-assets.zip`의 개발 후보 파일 10개를 고정 크기·SHA256·계약으로 검증한다. 이 후보는 공개 DART Release가 아니며 소스 커밋은 lock에 기록한다. 설치 시 다운로드나 GitHub 인증은 필요하지 않다. 설치 직전 현재 OS 실행 파일의 실제 version, 기존 identity/export와 버전된 identity/export도 확인한다. 검증 실패 시 기존 스킬은 보존된다.
+설치 도구는 저장소에 포함된 `release/dart-agent-release-assets.zip`의 공식 DART v2.1.1 첨부물 10개를 고정 크기·SHA256·계약으로 검증한다. 출처 Release, 자산 ID, 소스 커밋과 버전된 manifest의 후보 식별자는 `release/dart-2.1.1.lock.json`에 기록한다. 설치 시 다운로드나 GitHub 인증은 필요하지 않다. 설치 직전 현재 OS 실행 파일의 실제 version, 기존 identity/export와 버전된 identity/export도 확인한다. 검증 실패 시 기존 스킬은 보존된다.
 
 별도로 준비한 ZIP을 사용할 경우 아래처럼 경로를 지정할 수 있다.
 
@@ -38,13 +38,13 @@ uv run --no-project python tools/install.py --prepared-dir /private/development-
 
 ## 계약 인수 기준
 
-현재 개발 후보는 contractVersion 1.0.0과 fingerprint `478f2c998b51f7b6f3f7dd0d0670ed8583cf64561ecaafd23946875d5b79fd53`을 고정한다. 설치 전 자산과 실제 CLI의 버전된 export를 검증하고, 연결할 때 실제 CLI와 연결 Main을 각각 배포 기준에 비교한다. 릴리스·protocol·format·contractVersion·fingerprint가 모두 정확히 일치해야 새 업무를 시작한다. 동일 major나 additive 분류는 자동 허용이 아니다. 조회 실패·누락·버전 없는 응답은 unknown으로 처리하고 업무를 중단한다. 기존 legacy 기준을 새 버전으로 추정하거나 기준을 자동 갱신하지 않는다. 기존 Task의 조회·복구 규칙은 유지한다.
+현재 릴리스는 contractVersion 2.0.0과 fingerprint `0eca1fe6c52db9a2cb7aa6960c4b32fc4715cd29fd801dd7d74a7e633a294807`을 고정한다. 설치 전 자산과 실제 CLI의 버전된 export를 검증하고, 연결할 때 실제 CLI와 연결 Main을 각각 배포 기준에 비교한다. 릴리스·protocol·format·contractVersion·fingerprint가 모두 정확히 일치해야 새 업무를 시작한다. 동일 major나 additive 분류는 자동 허용이 아니다. 조회 실패·누락·버전 없는 응답은 unknown으로 처리하고 업무를 중단한다. 기존 legacy 기준을 새 버전으로 추정하거나 기준을 자동 갱신하지 않는다. 기존 Task의 조회·복구 규칙은 유지한다.
 
-이 기준은 개발 후보에 대한 명시적 소비자 기준이며 정식 DART 발행이나 회사 환경 인수가 아니다. 후보 source commit/tree는 선언된 출처이고 해당 커밋으로부터 설치본의 바이트 재현을 입증하지 않는다.
+DART 앱도 v2.1.1로 갱신해야 한다. protocol 2 앱·CLI와 혼용하지 않는다. 공식 Release에 첨부된 버전된 manifest는 `status: candidate`와 선언된 source commit/tree를 유지한다. 공개 첨부물의 무결성 검증과 소스에서의 바이트 재현, 연결된 Main의 실제 계약 검증은 별도다. 이번 검증 범위는 [릴리스 기록](release-preparation.md)에 있다.
 
 ## Windows 담당자와 PIN 페어링
 
-1. Windows DART를 실행하고 Settings > **Remote Access**에서 Linux가 접근할 수 있는 **Network adapter**를 선택해 접근을 활성화한다.
+1. Windows DART를 실행하고 **AI Agent** 창의 **Settings** > **Remote Access**에서 Linux가 접근할 수 있는 **Network adapter**를 선택해 접근을 활성화한다.
 2. **Pair a CLI**를 선택한다. 새 프로필 이름과 화면에 표시된 HTTPS endpoint로 Linux의 대화형 터미널에서 설치된 스킬의 CLI를 실행한다.
 
 ```bash
@@ -89,10 +89,10 @@ Cline은 공개 `dataset inspect`의 Dataset별 source binding을 조회하고, 
 
 ## SQL·분석과 Windows 내보내기
 
-준비된 Dataset, 원하는 조회 또는 분석과 Windows 절대 출력 경로를 Cline에 지정한다. 예를 들어 “이 합성 Dataset의 로그 행 수를 SQL로 구하고 CSV를 Windows 경로에 저장해 결과와 파일을 확인해 주세요”라고 요청한다. 필요한 SQL 저장과 결과 준비는 Workspace를 변경할 수 있다. 덮어쓰기는 별도 명시가 필요하다.
+준비된 Dataset, 원하는 조회 또는 분석, CSV·JSON·Parquet 형식과 Windows 절대 출력 경로를 Cline에 지정한다. 예를 들어 “이 합성 Dataset의 로그 행 수를 SQL로 구하고 CSV를 Windows 경로에 저장해 결과와 파일을 확인해 주세요”라고 요청한다. 필요한 SQL 저장과 결과 준비는 Workspace를 변경할 수 있다. 덮어쓰기는 별도 명시가 필요하다.
 
-Cline은 필요한 공개 계약을 선택해 SQL Builder, Results 또는 Charts·Pivot·Comparison을 사용한다. 작업 접수와 완료, 결과 준비, Windows 파일 출판을 따로 확인한다. 기존 결과가 남아 있어도 새 작업이 실패하거나 취소됐다면 새 결과로 보고하지 않는다. 파일은 Windows에 생성되며 Linux로 자동 전송되지 않는다. 성공 결과와 실제 Windows 파일 위치·내용 확인 여부, 실패나 미확인 항목을 구분해 보고한다.
+Cline은 필요한 공개 계약을 선택해 SQL Builder, Results 또는 Charts·Pivot·Comparison을 사용한다. Tag View·SQL Results·Charts의 파일 내보내기는 `tag file`, `results file`, `charts file` 계약을 확인하며, 선택한 형식과 확장자, 적용된 결과와 컬럼·범위를 검증한다. Parquet은 단일 Dataset·정의 등 원본 계보 조건을 만족해야 하며, 지원하지 않는 입력을 임의로 변환하지 않는다. 작업 접수와 완료, 결과 준비, Windows 파일 출판을 따로 확인한다. 기존 결과가 남아 있어도 새 작업이 실패하거나 취소됐다면 새 결과로 보고하지 않는다. 파일은 Windows에 생성되며 Linux로 자동 전송되지 않는다. 성공 결과와 실제 Windows 파일 위치·내용 확인 여부, 실패나 미확인 항목을 구분해 보고한다.
 
 합성 데이터 기대값과 수행한 인수 범위는 [SQL·분석 인수 기록](verification/issue-7.md)을 참고한다.
 
-최종 배포 및 재설치 인수의 현재 상태와 남은 실제 Release·회사 환경 게이트는 [통합 인수 기록](verification/issue-8.md)을 참고한다.
+현재 릴리스의 설치 검증은 [릴리스 기록](release-preparation.md)을 참고한다. [기존 통합 인수 기록](verification/issue-8.md)은 DART 2.1.0 당시의 관측이며 v2.1.1 연결·회사 환경 인수를 대신하지 않는다.

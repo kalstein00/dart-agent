@@ -15,6 +15,21 @@ CONTRACT = {
 
 
 class VersionedIdentityTests(unittest.TestCase):
+    def test_protocol_3_identity_accepts_only_the_pinned_release_and_contract(self):
+        baseline = copy.deepcopy(CONTRACT)
+        baseline.update(releaseVersion='2.1.1', protocolVersion=3, contractVersion='2.0.0')
+        response = dict(ok=True, protocolVersion=3, data=dict(version='2.1.1', contract=baseline))
+        versioned_identity(response, baseline)
+        for field, value in (('protocolVersion', 2), ('contractVersion', '1.0.0'),
+                             ('releaseVersion', '2.1.0')):
+            altered = copy.deepcopy(response)
+            altered['data']['contract'][field] = value
+            with self.subTest(field=field), self.assertRaises(ValueError):
+                versioned_identity(altered, baseline)
+        response['protocolVersion'] = 2
+        with self.assertRaises(ValueError):
+            versioned_identity(response, baseline)
+
     def test_exact_identity_is_accepted(self):
         versioned_identity({"ok": True, "protocolVersion": 2,
                             "data": {"version": "2.1.0", "contract": CONTRACT}}, CONTRACT)

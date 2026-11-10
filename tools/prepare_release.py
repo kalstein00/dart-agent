@@ -11,7 +11,7 @@ import sys
 import tempfile
 import zipfile
 
-DEFAULT_LOCK = Path(__file__).resolve().parents[1] / 'release/dart-2.1.0.lock.json'
+DEFAULT_LOCK = Path(__file__).resolve().parents[1] / 'release/dart-2.1.1.lock.json'
 
 
 def require(condition, message):
@@ -54,11 +54,11 @@ def versioned_identity(response, baseline):
         require(key in contract and contract[key] == baseline[key], 'versioned identity mismatch: ' + key)
 
 
-def run_cli(executable, args):
+def run_cli(executable, args, protocol_version):
     result = subprocess.run([str(executable), *args], capture_output=True, text=True, encoding='utf-8', timeout=60, check=True)
     response = json.loads(result.stdout)
-    require(response.get('ok') is True and response.get('protocolVersion') == 2,
-            'CLI did not report a successful protocol 2 response')
+    require(response.get('ok') is True and response.get('protocolVersion') == protocol_version,
+            f'CLI did not report a successful protocol {protocol_version} response')
     return response
 
 
@@ -67,7 +67,9 @@ def prepare(lock_path, source, output):
     require(source is not None or lock['upstream'].get('kind') != 'development-candidate',
             'development candidate requires local assets; it is not a published release')
     require(lock['schemaVersion'] == 1, 'unsupported distribution schema')
-    require(lock['dartVersion'] == '2.1.0' and lock['protocolVersion'] == 2, 'incompatible pinned DART version/protocol')
+    require((lock['dartVersion'], lock['protocolVersion']) in {('2.1.0', 2), ('2.1.1', 3)},
+            'incompatible pinned DART version/protocol')
+    protocol_version = lock['protocolVersion']
     require(lock['contract']['formatVersion'] == 2 and
             lock['contract']['fingerprint']['algorithm'] == 'sha256' and
             lock['contract']['fingerprint']['projectionVersion'] == 1, 'incompatible contract format')
@@ -78,6 +80,7 @@ def prepare(lock_path, source, output):
     platform_key = system.lower() + '-x64'
     records = {safe_name(a['file']): a for a in lock['assets']}
     versioned = lock.get('versionedContract')
+    require(protocol_version != 3 or versioned is not None, 'protocol 3 requires a versioned baseline')
     count = 10 if versioned else 7
     require(len(records) == len(lock['assets']) == count, 'unexpected upstream asset inventory')
     if versioned:
@@ -136,7 +139,7 @@ def prepare(lock_path, source, output):
             platforms[key] = dict(file=matches[0], os=artifact['os'], cpu='x64', libc=artifact['libc'])
         require(set(platforms) == {'linux-x64', 'windows-x64'}, 'missing CLI platform')
         catalog = load(stage / 'dart-cli-command-catalog.json')
-        require(catalog['releaseVersion'] == lock['dartVersion'] and catalog['protocolVersion'] == 2 and
+        require(catalog['releaseVersion'] == lock['dartVersion'] and catalog['protocolVersion'] == protocol_version and
                 catalog['formatVersion'] == lock['contract']['formatVersion'] and
                 catalog['fingerprint'] == lock['contract']['fingerprint'], 'incompatible command catalog')
         with zipfile.ZipFile(stage / 'dart-agent-bundle.zip') as archive:
@@ -173,21 +176,21 @@ def prepare(lock_path, source, output):
         executable = stage / platforms[platform_key]['file']
         if system == 'Linux':
             executable.chmod(0o755)
-        version = run_cli(executable, ['version'])
+        version = run_cli(executable, ['version'], protocol_version)
         require(version['data']['version'] == lock['dartVersion'], 'executing CLI version mismatch')
-        observed = run_cli(executable, ['contract', 'identity'])
+        observed = run_cli(executable, ['contract', 'identity'], protocol_version)
         require(observed['data']['version'] == lock['dartVersion'], 'executing CLI identity version mismatch')
         live_contract = observed['data']['contract']
         require(live_contract['releaseVersion'] == lock['dartVersion'] and
                 live_contract['protocolVersion'] == lock['protocolVersion'] and
                 {key: live_contract[key] for key in ('formatVersion', 'fingerprint')} == lock['contract'],
                 'executing CLI public identity mismatch')
-        exported = run_cli(executable, ['contract', 'export', 'full'])
+        exported = run_cli(executable, ['contract', 'export', 'full'], protocol_version)
         require(exported['data'] == catalog, 'executing CLI public contract differs from catalog')
         if versioned:
-            observed_v2 = run_cli(executable, ['contract', 'identity', 'versioned'])
+            observed_v2 = run_cli(executable, ['contract', 'identity', 'versioned'], protocol_version)
             versioned_identity(observed_v2, versioned)
-            exported_v2 = run_cli(executable, ['contract', 'export', 'versioned'])
+            exported_v2 = run_cli(executable, ['contract', 'export', 'versioned'], protocol_version)
             require(exported_v2['data'] == versioned_catalog, 'versioned CLI export differs from catalog')
         # Keep private host paths out of published preparation evidence.
         observed['data'].pop('executablePath', None)
