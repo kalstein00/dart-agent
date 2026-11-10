@@ -1,0 +1,4 @@
+interface:
+  display_name: "DART Agent Release"
+  short_description: "Release dart-agent against the latest official DART app"
+  default_prompt: "Use $dart-agent-release to check the latest stable DART app release and release this dart-agent repository."
